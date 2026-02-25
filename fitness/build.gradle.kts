@@ -26,6 +26,7 @@ dependencies {
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.host.common)
     implementation(libs.ktor.server.status.pages)
+    implementation("io.ktor:ktor-server-html-builder:3.4.0")
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
     implementation(libs.ktor.server.config.yaml)

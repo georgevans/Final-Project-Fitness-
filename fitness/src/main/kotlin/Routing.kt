@@ -11,6 +11,8 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.*
+import io.ktor.server.html.*
+import kotlinx.html.*
 
 fun Application.configureRouting() {
     install(StatusPages) {
@@ -20,7 +22,11 @@ fun Application.configureRouting() {
     }
     routing {
         get("/") {
-            call.respondText("Hello World!")
+            call.respondHtml {
+                body {
+                    h1 { +"Hello" }
+                }
+            }
         }
     }
 }
