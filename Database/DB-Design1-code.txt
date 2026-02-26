@@ -1,0 +1,61 @@
+Enum ActivityType {
+  C
+  W
+}
+
+Enum UnitType {
+  lb
+  kg
+}
+
+Enum DifficultyLevel {
+  Low
+  Medium
+  High
+}
+
+Table Users {
+  UserID int [pk, increment]
+  Username varchar(45) [not null]
+  Email varchar(100) [not null]
+  Password varchar(250) [not null]
+}
+
+Table Workout {
+  WorkoutID int [pk, increment]
+  UserID int [not null, ref: > Users.UserID]
+  WorkoutDate date
+  Name varchar(100)
+}
+
+Table Exercise {
+  ExerciseID int [pk, increment]
+  WorkoutID int [not null, ref: > Workout.WorkoutID]
+  Name varchar(100) [not null]
+  Type ActivityType [not null]
+}
+
+Table Cardio {
+  ExerciseID int [pk, ref: > Exercise.ExerciseID]
+  DurationMinutes int
+  DistanceKm decimal
+  Calories int
+}
+
+Table Weights {
+  ExerciseID int [pk, ref: > Exercise.ExerciseID]
+  Difficulty DifficultyLevel
+}
+
+Table ExerciseSet {
+  SetID int [pk, increment]
+  ExerciseID int [not null, ref: > Weights.ExerciseID]
+  SetNumber int [not null]
+  Reps int [not null]
+  Weight decimal
+  Unit UnitType [not null]
+
+  Indexes {
+    (ExerciseID, SetNumber) [unique]
+  }
+}
