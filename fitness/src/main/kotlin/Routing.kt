@@ -24,7 +24,7 @@ fun Application.configureRouting() {
         get("/") {
             call.respondHtml {
                 body {
-                    h1 { +"Hello" }
+                    h1 { +"Hello!" }
                 }
             }
         }
