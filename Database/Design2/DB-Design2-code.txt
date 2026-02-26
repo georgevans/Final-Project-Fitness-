@@ -1,0 +1,150 @@
+Enum ActivityType {
+  C
+  W
+}
+
+Enum UnitType {
+  lb
+  kg
+}
+
+Enum DifficultyLevel {
+  Low
+  Medium
+  High
+}
+
+Enum RaceType {
+  Run
+  Swim
+  Cycle
+  Triathalon
+}
+
+Enum DistanceUnitType {
+  km
+  miles
+}
+
+Enum TimeUnit {
+  S
+  M
+  H
+}
+
+Table Users {
+  UserID int [pk, increment]
+  Username varchar(45) [not null]
+  Email varchar(100) [not null]
+  Password varchar(250) [not null]
+}
+
+Table Workout {
+  WorkoutID int [pk, increment]
+  UserID int [not null, ref: > Users.UserID]
+  WorkoutDate date
+  Name varchar(100)
+}
+
+Table Exercise {
+  ExerciseID int [pk, increment]
+  WorkoutID int [not null, ref: > Workout.WorkoutID]
+  Name varchar(100) [not null]
+  Type ActivityType [not null]
+}
+
+Table Cardio {
+  ExerciseID int [pk, ref: > Exercise.ExerciseID]
+  Duration int
+  Distance decimal
+  TimeUnit TimeUnit 
+  DistanceUnit DistanceUnitType
+  Calories int
+}
+
+Table Weights {
+  ExerciseID int [pk, ref: > Exercise.ExerciseID]
+  Difficulty DifficultyLevel
+}
+
+Table ExerciseSet {
+  SetID int [pk, increment]
+  ExerciseID int [not null, ref: > Weights.ExerciseID]
+  SetNumber int [not null]
+  Reps int [not null]
+  Weight decimal
+  Unit UnitType [not null]
+
+  Indexes {
+    (ExerciseID, SetNumber) [unique]
+  }
+}
+
+Table Races {
+  RaceID int [pk, not null, increment, unique]
+  RaceType RaceType [not null]
+  Date date
+  Distance int
+  DistanceUnit DistanceUnitType
+}
+
+Table RaceLog {
+  RaceID int [pk, not null, increment, unique, ref: > Races.RaceID]
+  UserID int [ref: > Users.UserID]
+  Time time 
+  DistanceCompleted int // (0-100)% 
+}
+
+Table Events {
+  EventID int  [pk, not null, increment, unique]
+  Name varchar(100)
+  Location varchar(100)
+  Date date
+  Time time
+  Duration int
+  Description varchar(250)
+}
+
+Table TrainingGroups {
+  GroupID int [pk, not null, increment, unique]
+  Name varchar(45)
+  MemberCount int 
+  UserID int [ref: - Users.UserID] // this is the lead member/owner
+}
+
+Table UsersGroups {
+  UsersGroupsID int [pk, not null, increment, unique]
+  UserID int [ref: > Users.UserID] 
+  GroupID int [ref: > TrainingGroups.GroupID]
+}
+
+Table Goals {
+  GoalID int [pk, not null, increment, unique]
+  UserID int [not null, ref: > Users.UserID]
+  Name varchar(45)
+  GoalType GoalType 
+  Achieved boolean
+}
+
+Table DistanceGoals {
+  DistanceGoalID int [pk, not null, increment, unique, ref: - Goals.GoalID]
+  GoalID int
+  Distance int 
+  DistanceUnit DistanceUnit 
+}
+
+Table TimeGoals {
+  TimeGoalID int [pk, not null, increment, unique, ref: - Goals.GoalID]
+  GoalID int
+  Time int 
+  TimeUnit TimeUnit 
+}
+
+// this referes to an actual weight not body weight (PR)
+Table WeightGoal {
+  WeightGoalID int [pk, not null, increment, unique, ref: - Goals.GoalID]
+  GoalID int
+  Reps int
+  Weight decimal
+  Unit UnitType [not null]
+}
