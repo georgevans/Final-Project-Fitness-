@@ -28,6 +28,15 @@ Table Workout {
   Name varchar(100)
 }
 
+Table WorkoutPlan {
+  PlanID int [pk, increment]
+  UserID int [not null, ref: > Users.UserID]
+  PlanName varchar(100) [not null]
+  StartDate date [not null]
+  EndDate date
+  TargetEvent varchar(100)
+}
+
 Table Exercise {
   ExerciseID int [pk, increment]
   WorkoutID int [not null, ref: > Workout.WorkoutID]
