@@ -168,11 +168,28 @@ fun Application.configureRouting() {
                                     }
                                     return value;
                                 }
+
+                                function safeInt(value, fieldName) { 
+                                    const parsed = parseInt(val2);
+                                    if (isNaN(parsed)) { alert(fieldName + ' must be a whole number'); return null; }
+                                    return parsed;
+                                }
+
+                                function safeFloat(value, fieldName) {
+                                    const parsed = parseFloat(value); 
+                                    if (isNaN(parsed)) { alert(fieldName + ' must be a number'); return null; }
+                                    return parsed;
+                                }
+
                                 function toggleFields(type) {
                                     document.getElementById('cardioFields').style.display = type === 'cardio' ? 'block' : 'none';
                                     document.getElementById('weightsFields').style.display = type === 'weights' ? 'block' : 'none';
                                 };
+
                                 function saveCardio(workoutId, exerciseId) {
+                                    const type = document.getElementById('exerciseType').value;
+                                    if (!type || type === '') { alert('Exercise type must be selected'); return; }
+
                                     const exerciseName = getInputVal('exerciseName');
                                     const duration = getInputVal('duration');
                                     const cals = getInputVal('cals');
@@ -180,32 +197,46 @@ fun Application.configureRouting() {
                                     
                                     if (!exerciseName || !duration || !cals || !distance) return;
 
+                                    if (duration <= 0) { alert('Duration must be greater than 0'); return; }
+                                    if (cals < 0) { alert('Calories cannot be negative'); return; }
+                                    if (distance <= 0) { alert('Distance must be greater than 0'); return; }
+                                    
                                     const data = {
                                         workoutId: workoutId,
                                         exerciseId: exerciseId,
                                         exerciseName: exerciseName,
-                                        duration: parseInt(duration),
-                                        cals: parseInt(cals),
-                                        distance: parseFloat(distance)
+                                        duration: duration,
+                                        cals: cals,
+                                        distance: distance
                                     };
                                     console.log(data);
                                     // then send to backend with POST
-                                    // window.location.href = '/add-workout';
+                                    window.location.href = '/add-workout';
                                 }
                                 function saveWeights(workoutId, exerciseId) {
+                                    const type = document.getElementById('exerciseType').value;
+                                    if (!type || type === '') { alert('Exercise type must be selected'); return; }
+                                    
                                     const exerciseName = getInputVal('exerciseName');
-                                    const sets = getInputVal('sets');
-                                    const reps = getInputVal('reps');
-                                    const weight = getInputVal('weight');
-                                    const difficulty = getInputVal('difficulty');
-
-                                    if (!exerciseName || !sets || !reps || !weight || !difficulty) return;
-
-                                    const difficultyVal = parseInt(difficulty);
-                                    if (difficultyVal < 1 || difficultyVal > 10) {
-                                        alert('Difficulty must be between 1 and 10');
-                                        return;
-                                    }
+                                    const setsRaw = getInputVal('sets');
+                                    const repsRaw = getInputVal('reps');
+                                    const weightRaw = getInputVal('weight');
+                                    const difficultyRaw = getInputVal('difficulty');
+                                    
+                                    if (!exerciseName || !setsRaw || !repsRaw || !weightRaw || !difficultyRaw) return;
+                                    
+                                    const sets = safeInt(setsRaw, 'Sets');
+                                    const reps = safeInt(repsRaw, 'Reps');
+                                    const weight = safeFloat(weightRaw, 'Weight');
+                                    const difficulty = safeInt(difficultyRaw, 'Difficulty');
+                                    
+                                    if (sets === null || reps === null || weight === null || difficulty === null) return;
+                                    
+                                    if (sets <= 0) { alert('Sets must be greater than 0'); return; }
+                                    if (reps <= 0) { alert('Reps must be greater than 0'); return; }
+                                    if (weight <= 0) { alert('Weight must be greater than 0'); return; }
+                                    if (difficulty < 1 || difficulty > 10) { alert('Difficulty must be between 1 and 10'); return; }
+                                    
 
                                     const data = {
                                         workoutId: workoutId,
