@@ -15,6 +15,42 @@ import io.ktor.server.html.*
 import kotlinx.html.*
 import io.ktor.server.http.content.*
 
+data class SetEntry(
+    val reps: Int,
+    val weight: Int,
+    val difficulty: Int
+)
+
+data class WeightExercise(
+    val exerciseName: String,
+    val exerciseId: Int,
+    val sets: List<SetEntry>
+)
+
+data class CardioEntry(
+    val duration: Int,
+    val cals: Int,
+    val distance: Int
+)
+
+data class CardioExercise(
+    val exerciseName: String,
+    val exerciseId: Int,
+    val entries: List<CardioEntry>
+)
+
+data class Workout(
+    val userId: Int,
+    val workoutId: Int,
+    val name: String,
+    val cardio: Boolean,
+    val weights: Boolean,
+    val weightExercises: List<WeightExercise>,
+    val cardioExercises: List<CardioExercise>,
+    val distanceUnit: String = "km",
+    val timeUnit: String = "minutes",
+    val weightUnit: String = "kg"
+)
 
 fun Application.configureRouting() {
     install(StatusPages) {
