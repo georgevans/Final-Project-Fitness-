@@ -23,9 +23,9 @@ fun Application.configureRouting() {
         }
     }
     routing {
-        staticResources("/static", "static")
+        staticResources("/static", "static") // sets static file path as resources folder (store css and imgs in here)
 
-        get("/") {
+        get("/") { // first page
             call.respondHtml {
                 head {
                     title { +"Home - Fitness Tracker"}
@@ -43,17 +43,18 @@ fun Application.configureRouting() {
                     }
 
                     div {
-                        h3 { +"Metrics"}
+                        h3 { +"Metrics"} // will contain weekly/monthly summary of cals burned, distance ran etc
                     }
 
                     div {
-                        a(href="/add-workout") { +"Add Workout"}
+                        a(href="/add-workout") { +"Add Workout"} // link to add workout form
                     }
                 }
             }
         }
 
         get("/add-workout") { 
+            // generate workout id up 
             call.respondHtml {
                 head {
                     title { +"Add Workout"}
@@ -65,7 +66,8 @@ fun Application.configureRouting() {
                             type = InputType.text
                             placeholder = "Workout Name"
                         }
-                        a(href="/add-workout/1/add-exercise/1") { +"Add Exercise to workout"} 
+                        // when clicked will need to gen id
+                        a(href="/add-workout/1/add-exercise/1") { +"Add Exercise to workout" } // passed workout id and a exercise id to the  
                     }
                 }
             }
@@ -109,7 +111,7 @@ fun Application.configureRouting() {
                             button { +"Save Weights Exercise" }
                         }
 
-                        script {
+                        script { // shows relevant forms when type changed.
                             unsafe {
                                 +"function toggleFields(type) {"
                                 +"  document.getElementById('cardioFields').style.display = type === 'cardio' ? 'block' : 'none';"
@@ -123,3 +125,8 @@ fun Application.configureRouting() {
         }
     }
 }
+
+// NEEDED before merge
+// Testing
+// Input validation for forms
+// Save form inputs into object for sending to server (to insert into db)
