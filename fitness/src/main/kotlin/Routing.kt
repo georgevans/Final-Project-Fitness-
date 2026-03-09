@@ -262,8 +262,5 @@ fun Application.configureRouting() {
 }
 
 // NEEDED before merge
-// Testing
-// Null protections for inputs
 // Workout name currently doesnt save
-// Input validation for forms
-// Save form inputs into object for sending to server (to insert into db)
+// pass data object up to /add-workout to be sent to server (on save click)
