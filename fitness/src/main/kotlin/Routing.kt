@@ -99,6 +99,7 @@ fun Application.configureRouting() {
                     div {
                         h1 { +"Add Workout" }
                         input {
+                            id = "workoutName"
                             type = InputType.text
                             placeholder = "Workout Name"
                         }
@@ -109,13 +110,17 @@ fun Application.configureRouting() {
             }
         }
 
-        get("/add-workout/{workout_id}/add-exercise/{exercise_id}") {
+        get("/add-workout/{workoutId}/add-exercise/{exerciseId}") {
+            val workoutId = call.parameters["workoutId"]?.toIntOrNull() ?: 1
+            val exerciseId = call.parameters["exerciseId"]?.toIntOrNull() ?: 1
+            
             call.respondHtml {
                 body {
                     div {
                         h1 { +"Add Exercise" }
 
                         input {
+                            id = "exerciseName"
                             type = InputType.text
                             placeholder = "Exercise Name"
                         }
@@ -131,28 +136,91 @@ fun Application.configureRouting() {
                         div {
                             id = "cardioFields"
                             style = "display:none"
-                            input { type = InputType.number; placeholder = "Duration"}
-                            input { type = InputType.number; placeholder = "Calories Burned" }
-                            input { type = InputType.number; placeholder = "Distance" }
-                            button { +"Save Cardio Exercise" }
+                            input { id = "duration"; type = InputType.number; placeholder = "Duration"}
+                            input { id = "cals"; type = InputType.number; placeholder = "Calories Burned" }
+                            input { id = "distance"; type = InputType.number; placeholder = "Distance" }
+                            button { 
+                                onClick = "saveCardio($workoutId, $exerciseId)"
+                                +"Save Cardio Exercise" }
                         }
 
                         div {
                             id = "weightsFields"
                             style = "display:none"
-                            input { type = InputType.number; placeholder = "Sets"}
-                            input { type = InputType.number; placeholder = "Reps per set" }
-                            input { type = InputType.number; placeholder = "Weight" }
-                            input { type = InputType.number; placeholder = "Difficulty (1-10)" }
-                            button { +"Save Weights Exercise" }
+                            input { id = "sets"; type = InputType.number; placeholder = "Sets"}
+                            input { id = "reps"; type = InputType.number; placeholder = "Reps per set" }
+                            input { id = "weight"; type = InputType.number; placeholder = "Weight" }
+                            input { id = "difficulty"; type = InputType.number; placeholder = "Difficulty (1-10)" }
+                            button { 
+                                onClick = "saveWeights($workoutId, $exerciseId)"
+                                +"Save Weights Exercise" }
                         }
 
                         script { // shows relevant forms when type changed.
                             unsafe {
-                                +"function toggleFields(type) {"
-                                +"  document.getElementById('cardioFields').style.display = type === 'cardio' ? 'block' : 'none';"
-                                +"  document.getElementById('weightsFields').style.display = type === 'weights' ? 'block' : 'none';"
-                                +"}"
+                                +"""
+                                function getInputVal(id) {
+                                    const element = document.getElementById(id);
+                                    if (!element) { alert(id + ' not found'); return null; }
+                                    const value = element.value.trim();
+                                    if (!value || value === '') {
+                                        alert(id + ' cannot be empty');
+                                    }
+                                    return value;
+                                }
+                                function toggleFields(type) {
+                                    document.getElementById('cardioFields').style.display = type === 'cardio' ? 'block' : 'none';
+                                    document.getElementById('weightsFields').style.display = type === 'weights' ? 'block' : 'none';
+                                };
+                                function saveCardio(workoutId, exerciseId) {
+                                    const exerciseName = getInputVal('exerciseName');
+                                    const duration = getInputVal('duration');
+                                    const cals = getInputVal('cals');
+                                    const distance = getInputVal('distance');
+                                    
+                                    if (!exerciseName || !duration || !cals || !distance) return;
+
+                                    const data = {
+                                        workoutId: workoutId,
+                                        exerciseId: exerciseId,
+                                        exerciseName: exerciseName,
+                                        duration: parseInt(duration),
+                                        cals: parseInt(cals),
+                                        distance: parseFloat(distance)
+                                    };
+                                    console.log(data);
+                                    // then send to backend with POST
+                                    // window.location.href = '/add-workout';
+                                }
+                                function saveWeights(workoutId, exerciseId) {
+                                    const exerciseName = getInputVal('exerciseName');
+                                    const sets = getInputVal('sets');
+                                    const reps = getInputVal('reps');
+                                    const weight = getInputVal('weight');
+                                    const difficulty = getInputVal('difficulty');
+
+                                    if (!exerciseName || !sets || !reps || !weight || !difficulty) return;
+
+                                    const difficultyVal = parseInt(difficulty);
+                                    if (difficultyVal < 1 || difficultyVal > 10) {
+                                        alert('Difficulty must be between 1 and 10');
+                                        return;
+                                    }
+
+                                    const data = {
+                                        workoutId: workoutId,
+                                        exerciseId: exerciseId,
+                                        exerciseName: exerciseName,
+                                        sets: parseInt(sets),
+                                        reps: parseInt(reps),
+                                        weight: parseFloat(weight),
+                                        difficulty: difficultyVal
+                                    };
+                                    console.log(data);
+                                    // send to backend with POST
+                                    window.location.href = '/add-workout'
+                                }
+                                """.trimIndent()
                             }
                         }
                     }
@@ -164,5 +232,7 @@ fun Application.configureRouting() {
 
 // NEEDED before merge
 // Testing
+// Null protections for inputs
+// Workout name currently doesnt save
 // Input validation for forms
 // Save form inputs into object for sending to server (to insert into db)
