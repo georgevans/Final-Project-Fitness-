@@ -1,9 +1,13 @@
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 router = APIRouter()
 
-@router.get("/", response_class=HTMLResponse) 
+@router.get("/", response_class=HTMLResponse)
+async def root():
+    return RedirectResponse(url="/home")
+
+@router.get("/home", response_class=HTMLResponse)
 async def home():
     return """
         <html>
@@ -18,4 +22,4 @@ async def home():
                 </div>
             </body>
         </html>
-    """
+    """ 
