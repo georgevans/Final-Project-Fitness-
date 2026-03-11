@@ -1,11 +1,7 @@
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 
 router = APIRouter()
-
-@router.get("/", response_class=HTMLResponse)
-async def root():
-    return RedirectResponse(url="/home")
 
 @router.get("/home", response_class=HTMLResponse)
 async def home():
