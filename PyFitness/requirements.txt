@@ -6,3 +6,5 @@ pydantic
 jinja2
 python-multipart
 bcrypt
+psycopg2-binary
+python-dotenv
