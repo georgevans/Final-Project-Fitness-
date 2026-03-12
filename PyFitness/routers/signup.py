@@ -2,6 +2,7 @@ import re
 import bcrypt
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from database.db import get_connection, get_user_by_email
 
 
 router = APIRouter()
@@ -95,7 +96,6 @@ def hash_password(password: str) -> str:
     hash = bcrypt.hashpw(password.encode("utf-8"), salt)
     return hash.decode("utf-8")
 
-
 @router.post("/signup")
 async def signup_post(
     username: str = Form(...),
@@ -109,15 +109,36 @@ async def signup_post(
     if error:
         return RedirectResponse(url=f"/signup?error={error}", status_code=303)
     
-    # Then we hash here
-    hashedPassword = hash_password(password)
-    
     # Then query database to check email not already registered
-    # Insert into db
-    # Update session information
-    # Return to home with 200 status 
 
-    return RedirectResponse(url="/home", status_code=303)
+    if get_user_by_email(email):
+        return RedirectResponse(url=f"/signup?error=Email+already+in+use", status_code=303)
+
+    # Then we hash here
+
+    hashedPassword = hash_password(password)
+
+    # Then insert into database
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO Users (Username, Email, Password) VALUES (%s, %s, %s)",
+            (username, email, hashedPassword)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        return RedirectResponse(url=f"/signup?error=Account+Signup+Failed", status_code=303)
+
+    # Update session information
+
+    # Return to home  
+
+    return RedirectResponse(url="/signup?error=Unkown+error", status_code=303)
+
 
 @router.post("/login")
 async def login_post(
