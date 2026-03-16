@@ -3,7 +3,7 @@ from main import app
 from routers.signup import check_sign_up_password, check_log_in_password
 
 client = TestClient(app)
-                    
+
 def test_signup_page_returns_200():
     response = client.get("/signup")
     assert response.status_code == 200
@@ -27,10 +27,6 @@ def test_signup_page_contains_email_input():
 def test_signup_page_contains_login_link():
     response = client.get("/signup")
     assert "/login" in response.text
-
-def test_signup_page_returns_200():
-    response = client.get("/login")
-    assert response.status_code == 200
 
 def test_login_page_contains_form():
     response = client.get("/login")
@@ -84,3 +80,24 @@ def test_login_password_no_special_character():
 
 def test_login_password_valid():
     assert check_log_in_password("ValidPassword91!") == None
+
+# ========= DB sign up checks ==========
+
+def test_signup_post_redirects_on_success():
+    response = client.post("/signup", data={
+        "username": "testuser",
+        "email": "email@testemail.com",
+        "password": "ValidPassword91!",
+        "confirmPassword": "ValidPassword91!"
+    }, follow_redirects=False)
+    assert response.status_code == 303
+
+def test_signup_post_fails_with_mismatched_passwords():
+    response = client.post("/signup", data={
+        "username": "testuser",
+        "email": "email@testemail.com",
+        "password": "ValidPassword91!",
+        "confirmPassword": "DifferentValidPassword91!"
+    }, follow_redirects=False)
+    assert response.status_code == 303
+    assert "error" in response.headers["location"]
