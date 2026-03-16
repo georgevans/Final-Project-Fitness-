@@ -12,7 +12,7 @@ def get_user_by_email(email):
     try:
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute("SELECT * FROM Users WHERE Email = %s", (email, ))
+        cur.execute('SELECT * FROM "Users" WHERE "Email" = %s', (email, ))
         user = cur.fetchone()
         cur.close()
         conn.close()

@@ -4,7 +4,6 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection, get_user_by_email
 
-
 router = APIRouter()
 
 @router.get("/signup", response_class=HTMLResponse)
@@ -124,20 +123,20 @@ async def signup_post(
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO Users (Username, Email, Password) VALUES (%s, %s, %s)",
+            'INSERT INTO "Users" ("Username", "Email", "Password") VALUES (%s, %s, %s)',
             (username, email, hashedPassword)
         )
         conn.commit()
         cursor.close()
         conn.close()
     except Exception as e:
+        print(f"Database error: {e}")
         return RedirectResponse(url=f"/signup?error=Account+Signup+Failed", status_code=303)
 
-    # Update session information
+    # Update session information - NEEDS DOING
 
     # Return to home  
-
-    return RedirectResponse(url="/signup?error=Unkown+error", status_code=303)
+    return RedirectResponse(url="/home", status_code=303)
 
 
 @router.post("/login")
@@ -151,10 +150,27 @@ async def login_post(
     if error:
         return RedirectResponse(url=f"/login?error={error}", status_code=303)
     
-    # Hash password
-    hashedPassword = hash_password(password)
-
     # Query database 
-    # Then if its not a valid account return to login page with err msg
-    # If it valid then save session and return to home with 200 status
-    return RedirectResponse(url="/home", status_code=200)
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM "Users" WHERE "Username" = %s', (username, ))
+        user = cursor.fetchone()
+        cursor.close()
+        conn.close()
+    except Exception as e: 
+        # Then if its not a valid account return to login page with err msg
+        return RedirectResponse(url="/login?error=Login+failed", status_code=303)
+    
+    if not user:
+        return RedirectResponse(url="/login?error=Invalid+username+or+password", status_code=303)
+    
+    # Hash password
+    if not bcrypt.checkpw(password.encode("utf-8"), user[3].encode("utf-8")):
+        return RedirectResponse(url="/login?error=Invalid+username+or+password", status_code=303)
+
+    # If it valid then save session and return to home
+    
+    return RedirectResponse(url="/home", status_code=303)
+
+    

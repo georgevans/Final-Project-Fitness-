@@ -18,4 +18,4 @@ async def home():
                 </div>
             </body>
         </html>
-    """ 
+    """
