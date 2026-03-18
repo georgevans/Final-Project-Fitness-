@@ -138,7 +138,6 @@ async def signup_post(
     # Return to home  
     return RedirectResponse(url="/home", status_code=303)
 
-
 @router.post("/login")
 async def login_post(
     username: str = Form(...), 

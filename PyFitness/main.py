@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from routers import home, signup
+from routers import home, signup, addworkout
 from database.db import get_connection
 
 app = FastAPI()
@@ -10,6 +10,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(home.router)
 app.include_router(signup.router)
+app.include_router(addworkout.router)
 
 @app.get("/")
 async def root():
