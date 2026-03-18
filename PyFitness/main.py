@@ -1,11 +1,17 @@
+import os
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 from routers import home, signup, addworkout
 from database.db import get_connection
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY"))
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(home.router)
