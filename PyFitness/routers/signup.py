@@ -131,7 +131,7 @@ async def signup_post(
         cursor.close()
         conn.close()
     except Exception as e:
-        print(f"Database error: {e}")
+        print(f"Database error (signup): {e}")
         return RedirectResponse(url=f"/signup?error=Account+Signup+Failed", status_code=303)
 
     # Update session information 
