@@ -97,6 +97,7 @@ def hash_password(password: str) -> str:
 
 @router.post("/signup")
 async def signup_post(
+    request: Request,
     username: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
@@ -133,13 +134,18 @@ async def signup_post(
         print(f"Database error: {e}")
         return RedirectResponse(url=f"/signup?error=Account+Signup+Failed", status_code=303)
 
-    # Update session information - NEEDS DOING
+    # Update session information 
+
+    user = get_user_by_email(email)
+    request.session["userId"] = user[0]
+    request.session["username"] = username
 
     # Return to home  
     return RedirectResponse(url="/home", status_code=303)
 
 @router.post("/login")
 async def login_post(
+    request: Request,
     username: str = Form(...), 
     password: str = Form(...)
     ):
@@ -170,6 +176,9 @@ async def login_post(
 
     # If it valid then save session and return to home
     
+    request.session["userId"] = user[0]
+    request.session["username"] = username
+
     return RedirectResponse(url="/home", status_code=303)
 
     

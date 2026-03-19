@@ -23,41 +23,66 @@ async def add_workout(error: str = None):
                         <label>Workout Name</label><br>
                         <input type="text" id="workoutName" name="workoutName" placeholder="Enter workout name" required><br><br>
 
-                        <label>Type</label><br>
-                        <select id="workoutType" name="workoutType" onchange="handleTypeChange(this.value)" required>
-                            <option value="">Select type</option>
-                            <option value="cardio">Cardio</option>
-                            <option value="weights">Weights</option>
-                        </select><br><br>
+                        <div id="exerciseList"></div>
 
-                        <div id="cardioFields" style="display:none">
-                            <label>Exercise Name</label><br>
-                            <input type="text" id="exerciseName" name="exerciseName" placeholder="e.g. Running"><br><br>
-
-                            <label>Duration (minutes)</label><br>
-                            <input type="number" id="duration" name="duration" placeholder="Enter duration"><br><br>
-
-                            <label>Distance (km)</label><br>
-                            <input type="number" id="distance" name="distance" placeholder="Enter distance" step="0.1"><br><br>
-
-                            <label>Calories Burned</label><br>
-                            <input type="number" id="calories" name="calories" placeholder="Enter calories"><br><br>
-                        </div>
+                        <button type="button" onclick="addExercise()">+ Add Exercise</button><br><br>
                         <button type="submit">Save Workout</button>
+
                     </form>
-                    <p>Already have an account? <a href="/login">Log in</a></p>
                 </div>
 
                 <script>
-                    function handleTypeChange(value) {{
+                    let exerciseCount = 0;
+
+                    function addExercise() {{
+                        exerciseCount++;
+                        const container = document.getElementById("exerciseList");
+
+                        const exercise = document.createElement("div");
+                        exercise.id = "exercise_" + exerciseCount;
+                        exercise.style = "border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;";
+                        exercise.innerHTML = `
+                            <h3>Exercise ${{exerciseCount}}</h3>
+                            <label>Type</label><br>
+                            <select name="workoutType_${{exerciseCount}}" onchange="handleTypeChange(this.value, ${{exerciseCount}})">
+                                <option value="">Select type</option>
+                                <option value="cardio">Cardio</option>
+                                <option value="weights">Weights</option>
+                            </select><br><br>
+
+                            <div id="cardioFields_${{exerciseCount}}" style="display:none">
+                                <label>Exercise Name</label><br>
+                                <input type="text" name="exerciseName_${{exerciseCount}}" placeholder="e.g. Running"><br><br>
+
+                                <label>Duration (minutes)</label><br>
+                                <input type="number" name="duration_${{exerciseCount}}" placeholder="Enter duration"><br><br>
+
+                                <label>Distance (km)</label><br>
+                                <input type="number" name="distance_${{exerciseCount}}" placeholder="Enter distance" step="0.1"><br><br>
+
+                                <label>Calories Burned</label><br>
+                                <input type="number" name="calories_${{exerciseCount}}" placeholder="Enter calories"><br><br>
+                            </div>
+
+                            <button type="button" onclick="removeExercise(${{exerciseCount}})">Remove</button>
+                        `;
+                        container.appendChild(exercise);
+                    }}
+
+                    function removeExercise(id) {{
+                        const exercise = document.getElementById("exercise_" + id);
+                        exercise.remove();
+                    }}
+
+                    function handleTypeChange(value, id) {{
                         if (value === "weights") {{
-                            alert("Weights tracking is still under development, please use cardio for now")
-                            document.getElementById("workoutType").value = "";
-                            document.getElementById("cardioFields").style.display = "none";
+                            alert("Weights tracking is still under development, please use cardio for now");
+                            document.querySelector(`select[name="workoutType_${{id}}"]`).value = "";
+                            document.getElementById("cardioFields_" + id).style.display = "none";
                         }} else if (value === "cardio") {{
-                            document.getElementById("cardioFields").style.display = "block";
+                            document.getElementById("cardioFields_" + id).style.display = "block";
                         }} else {{
-                            document.getElementById("cardioFields").style.display = "none";
+                            document.getElementById("cardioFields_" + id).style.display = "none";
                         }}
                     }}
                 </script>
@@ -65,16 +90,34 @@ async def add_workout(error: str = None):
         </html>
     """
 
+# to do:
+"""
+Need to refactor post so that handles exercises and adds to db
+Need to show user on home page that newly added workout has been added and display all their workouts on that page.
+"""
+
 @router.post("/add-workout")
 async def add_workout_post(
     request: Request,
-    workoutType: str = Form(...),
-    workoutName: str = Form(...),
-    exerciseName: str = Form(None),
-    duration: str = Form(None),
-    distance: str = Form(None),
-    calories: str = Form(None)
+    workoutName: str = Form(...)
 ):
+    
+    formData = await request.form()
+
+    exercises = []
+    i = 1
+    while f"exerciseName_{i}" in formData:
+        exercises.append({
+            "type": formData.get(f"workoutType_{i}"),
+            "name": formData.get(f"exerciseName_{i}"),
+            "duration": formData.get(f"duration_{i}"),
+            "distance": formData.get(f"distance_{i}"),
+            "calories": formData.get(f"calories_{i}"),
+        })
+        i += 1
+
+    if len(exercises) <= 0:
+        return RedirectResponse(url="/add-workout?error=Must+add+at+least+one+exercise+to+a+workout", status_code=303)
 
     if "userId" not in request.session:
         return RedirectResponse(url="/add-workout?error=Please+log+in", status_code=303)
@@ -84,49 +127,45 @@ async def add_workout_post(
     if not workoutName.strip():
         return RedirectResponse(url="/add-workout?error=Workout+name+cannot+be+empty", status_code=303)
 
-    if not workoutType.strip():
-        return RedirectResponse(url="/add-workout?error=Please+select+a+workout+type", status_code=303)
-
-    if workoutType == "cardio":
-        if not exerciseName or not exerciseName.strip():
-            return RedirectResponse(url="/add-workout?error=Exercise+name+cannot+be+empty", status_code=303)
-        if not duration:
-            return RedirectResponse(url="/add-workout?error=Duration+cannot+be+empty", status_code=303)
-        if not distance:
-            return RedirectResponse(url="/add-workout?error=Distance+cannot+be+empty", status_code=303)
-    
-    try:
-        duration = int(duration)
-        if duration <= 0:
-            return RedirectResponse(url="/add-workout?error=Duration+must+be+greater+than+zero", status_code = 303)
-    except ValueError:
-        return RedirectResponse(url="/add-workout?error=Duration+must+be+whole+number", status_code = 303)
-    
-    try:
-        distance = int(distance)
-        if distance <= 0:
-            return RedirectResponse(url="/add-workout?error=Distance+must+be+greater+than+zero", status_code = 303)
-    except ValueError:
-        return RedirectResponse(url="/add-workout?error=Distance+must+be+whole+number", status_code = 303)
-    
     # Insert into db
 
     userId = request.session["userId"]
     date = datetime.datetime.now()
+    time = datetime.datetime.now().time()
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            'INSERT INTO "Workout" ( "UserID", "WorkoutDate", "Name") VALUES (%s, %s, %s)',
-            (userId, date, workoutName)
+            'INSERT INTO "Workout" ("UserID", "WorkoutDate", "Name", "WorkoutTime") VALUES (%s, %s, %s, %s) RETURNING "WorkoutID"',
+            (userId, date, workoutName, time)
         )
+        workoutId = cursor.fetchone()[0]
+
+        for i in range(len(exercises)):
+            type = exercises[i]["type"]
+            name = exercises[i]["name"]
+            duration = exercises[i]["duration"]
+            distance = exercises[i]["distance"]
+            calories = exercises[i]["calories"]
+            cursor.execute(
+                'INSERT INTO "Exercise" ( "WorkoutID", "Name", "Type") VALUES (%s, %s, %s) RETURNING "ExerciseID"',
+                (workoutId, name, type)
+            )
+            exerciseId = cursor.fetchone()[0]
+            if type == "cardio":
+                cursor.execute(
+                    'INSERT INTO "Cardio" ( "ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories") VALUES (%s, %s, %s, %s, %s, %s)',
+                    (exerciseId, duration, distance, "km", "m", calories)
+                )
+            else:
+                print("Weight logging not developed")
         conn.commit()
         cursor.close()
         conn.close()
     except Exception as e:
         print(f"Database error: {e}")
-        return RedirectResponse(url=f"/signup?error=Workout+logging+failed", status_code=303)
+        return RedirectResponse(url=f"/add-workout?error=Workout+logging+failed", status_code=303)
         
     # Show success to user
 
