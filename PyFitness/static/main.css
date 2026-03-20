@@ -147,3 +147,66 @@ button.secondary:hover {
     border-top: 1px solid var(--border);
     margin: 24px 0;
 }
+
+.navbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar-brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.15em;
+    color: var(--toasted-almond);
+    text-decoration: none;
+}
+
+.navbar-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.navbar-links a {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.navbar-links a:hover {
+    color: var(--text-primary);
+    background: var(--surface-raised);
+}
+
+.navbar-links a.active {
+    color: var(--toasted-almond);
+}
+
+.navbar-links .nav-btn {
+    background: var(--brick-red);
+    color: var(--text-primary);
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.navbar-links .nav-btn:hover {
+    background: var(--rosy-copper);
+    color: var(--text-primary);
+}
