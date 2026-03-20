@@ -14,7 +14,7 @@ async def home(request: Request):
     print(userId)
     workout_html = ""
     if len(workouts) == 0:
-        workout_html = "<p>No workouts logged!</p>"
+        workout_html = "<p>No workouts logged!</p>\n<a href='/add-workout'><button>Add Workout</button></a>"
     else:
         for i in range(len(workouts)):
             workout_html += f"""
@@ -34,12 +34,16 @@ async def home(request: Request):
             </head>
             <body>
                 <div>
-                    <h1>Home</h1>
-                    <a href="/settings"><button>Settings</button></a>
-                </div>
-                <div>
+                    <nav class="navbar">
+                        <a href="/home" class="navbar-brand">Fitness Tracker</a>
+                        <div class="navbar-links">
+                            <a href="/home">Home</a>
+                            <a href="/add-workout">Add Workout</a>
+                            <a href="/settings">Settings</a>
+                            <a href="/logout" class="nav-btn">Logout</a>
+                        </div>
+                    </nav>
                     <h3>Hi, {request.session["username"]}</h3>
-                    <a href="/add-workout"><button>Add Workout</button></a>
                     <h4>Workouts</h4>
                     {workout_html}
                 </div>

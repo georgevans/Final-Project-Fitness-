@@ -14,21 +14,34 @@ async def add_workout(error: str = None):
         <html>
             <head>
                 <title>Add Workout</title>
+                <link rel="stylesheet" href="/static/main.css">
+                <link rel="stylesheet" href="/static/addworkout.css">
             </head>
             <body>
-                <div>
-                    <h1>Add workout</h1>
-                    {error_html}
-                    <form action="/add-workout" method="post">
-                        <label>Workout Name</label><br>
-                        <input type="text" id="workoutName" name="workoutName" placeholder="Enter workout name" required><br><br>
-
-                        <div id="exerciseList"></div>
-
-                        <button type="button" onclick="addExercise()">+ Add Exercise</button><br><br>
-                        <button type="submit">Save Workout</button>
-
-                    </form>
+                <div class="workout-wrapper">
+                    <nav class="navbar">
+                        <a href="/home" class="navbar-brand">Fitness Tracker</a>
+                        <div class="navbar-links">
+                            <a href="/home">Home</a>
+                            <a href="/add-workout">Add Workout</a>
+                            <a href="/settings">Settings</a>
+                            <a href="/logout" class="nav-btn">Logout</a>
+                        </div>
+                    </nav>
+                    <div class="workout-card">
+                        <div class="accent-line"></div>
+                        {error_html}
+                        <form action="/add-workout" method="post">
+                            <div class="form-group">
+                                <label>Workout Name</label>
+                                <input type="text" id="workoutName" name="workoutName" placeholder="Enter workout name" required>
+                            </div>
+                            <div class="exercise-list" id="exerciseList"></div>
+                            <button type="button" class="add-exercise-btn" onclick="addExercise()">+ Add Exercise</button>
+                            <hr class="form-divider">
+                            <button type="submit" class="save-btn">Save Workout</button>
+                        </form>
+                    </div>
                 </div>
 
                 <script>
