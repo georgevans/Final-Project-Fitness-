@@ -8,32 +8,42 @@ router = APIRouter()
 
 @router.get("/signup", response_class=HTMLResponse)
 async def signup(error: str = None):
-    error_html = f'<p style="color:red;">{error}</p>' if error else ""
+    error_html = f'<div class="error">{error}</div>' if error else ""
     return f"""
         <html>
             <head>
                 <title>Sign Up</title>
+                <link rel="stylesheet" href="/static/main.css">
+                <link rel="stylesheet" href="/static/signup.css">
             </head>
             <body>
-                <div>
-                    <h1>Sign Up</h1>
-                    {error_html}
-                    <form action="/signup" method="post">
-                        <label>Username</label><br>
-                        <input type="text" id="username" name="username" placeholder="Enter username" required><br><br>
-
-                        <label>Email</label><br>
-                        <input type="email" id="email" name="email" placeholder="Enter email" required><br><br>
-
-                        <label>Password</label><br>
-                        <input type="password" id="password" name="password" placeholder="Enter password" required><br><br>
-
-                        <label>Confirm Password</label><br>
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm password" required><br><br>
-
-                        <button type="submit">Sign Up</button>
-                    </form>
-                    <p>Already have an account? <a href="/login">Log in</a></p>
+                <div class="signup-wrapper">
+                    <div class="signup-card">
+                        <p class="brand">Fitness Tracker</p>
+                        <h1>Sign <span>Up</span></h1>
+                        <div class="accent-line"></div>
+                        {error_html}
+                        <form action="/signup" method="post">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" name="username" placeholder="Enter username" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" placeholder="Enter email" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" name="password" placeholder="Enter password" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Confirm Password</label>
+                                <input type="password" name="confirmPassword" placeholder="Confirm password" required>
+                            </div>
+                            <button type="submit" class="signup-btn">Create Account</button>
+                        </form>
+                        <p class="login-link">Already have an account? <a href="/login">Log in</a></p>
+                    </div>
                 </div>
             </body>
         </html>

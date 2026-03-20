@@ -1,0 +1,206 @@
+@import url('main.css');
+
+.workout-wrapper {
+    min-height: 100vh;
+    padding: 40px 20px;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+}
+
+.workout-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -150px;
+    left: -150px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(84, 8, 4, 0.2) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.workout-header {
+    max-width: 700px;
+    margin: 0 auto 40px auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.workout-header h1 {
+    font-size: 3.5rem;
+    line-height: 1;
+}
+
+.workout-header h1 span {
+    color: var(--toasted-almond);
+}
+
+.back-link {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.back-link:hover {
+    color: var(--toasted-almond);
+}
+
+.workout-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+    animation: fadeUp 0.4s ease forwards;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.accent-line {
+    width: 40px;
+    height: 3px;
+    background: var(--toasted-almond);
+    border-radius: 2px;
+    margin-bottom: 28px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.exercise-list {
+    margin: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.exercise-block {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    position: relative;
+    animation: fadeUp 0.3s ease forwards;
+}
+
+.exercise-block h3 {
+    font-size: 1.2rem;
+    color: var(--toasted-almond);
+    margin-bottom: 16px;
+}
+
+.exercise-block .form-group {
+    margin-bottom: 16px;
+}
+
+.exercise-block select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    padding: 10px 14px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a89890' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+}
+
+.exercise-block select:focus {
+    border-color: var(--toasted-almond);
+}
+
+.cardio-fields {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.cardio-fields .form-group {
+    margin-bottom: 0;
+}
+
+.cardio-fields .full-width {
+    grid-column: 1 / -1;
+}
+
+.remove-btn {
+    background: transparent;
+    border: 1px solid rgba(199, 81, 70, 0.3);
+    color: var(--rosy-copper);
+    font-size: 0.8rem;
+    padding: 6px 14px;
+    margin-top: 16px;
+    letter-spacing: 0.05em;
+}
+
+.remove-btn:hover {
+    background: rgba(199, 81, 70, 0.1);
+    border-color: var(--rosy-copper);
+    transform: none;
+}
+
+.add-exercise-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed rgba(234, 140, 85, 0.4);
+    color: var(--toasted-almond);
+    padding: 14px;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 24px;
+    transition: all 0.2s ease;
+}
+
+.add-exercise-btn:hover {
+    background: rgba(234, 140, 85, 0.05);
+    border-color: var(--toasted-almond);
+    border-style: solid;
+    transform: none;
+}
+
+.save-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    background: var(--brick-red);
+    border-radius: 8px;
+    letter-spacing: 0.1em;
+}
+
+.save-btn:hover {
+    background: var(--rosy-copper);
+}
+
+.form-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+}
