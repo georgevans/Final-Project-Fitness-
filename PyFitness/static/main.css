@@ -1,0 +1,149 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600&display=swap');
+
+:root {
+    --toasted-almond: #EA8C55;
+    --rosy-copper: #C75146;
+    --brick-red: #AD2E24;
+    --dark-wine: #81171B;
+    --black-cherry: #540804;
+    --charcoal: #3B3738;
+
+    --bg: #1a1517;
+    --surface: #2a2224;
+    --surface-raised: #332729;
+    --text-primary: #f0e8e0;
+    --text-secondary: #a89890;
+    --border: rgba(234, 140, 85, 0.15);
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+h1, h2, h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.05em;
+    color: var(--text-primary);
+}
+
+h1 { font-size: 3rem; }
+h2 { font-size: 2.2rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.2rem; font-family: 'Outfit', sans-serif; font-weight: 500; }
+
+a {
+    color: var(--toasted-almond);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--rosy-copper);
+}
+
+input, select, textarea {
+    width: 100%;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: var(--toasted-almond);
+    box-shadow: 0 0 0 3px rgba(234, 140, 85, 0.1);
+}
+
+input::placeholder {
+    color: var(--text-secondary);
+}
+
+label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+button {
+    background: var(--brick-red);
+    border: none;
+    border-radius: 6px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 10px 24px;
+    text-transform: uppercase;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+button:hover {
+    background: var(--rosy-copper);
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+button.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+
+button.secondary:hover {
+    border-color: var(--toasted-almond);
+    color: var(--toasted-almond);
+    background: transparent;
+}
+
+.error {
+    background: rgba(129, 23, 27, 0.2);
+    border: 1px solid var(--dark-wine);
+    border-radius: 6px;
+    color: var(--rosy-copper);
+    font-size: 0.9rem;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+}
+
+.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 24px 0;
+}

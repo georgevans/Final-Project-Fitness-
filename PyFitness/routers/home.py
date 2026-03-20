@@ -30,6 +30,7 @@ async def home(request: Request):
         <html>
             <head>
                 <title>Fitness Tracker - Home</title>
+                <link rel="stylesheet" href="/static/main.css">
             </head>
             <body>
                 <div>
