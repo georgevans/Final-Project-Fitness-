@@ -20,3 +20,18 @@ def get_user_by_email(email):
     except Exception as e:
         print(f"Database error: {e}")
         return None
+
+def get_workouts_by_user(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT "WorkoutID", "Name", "WorkoutDate", "WorkoutTime" FROM "Workout" WHERE "UserID" = %s ORDER BY "WorkoutDate" DESC, "WorkoutTime" DESC',
+                    (userId, )
+        )
+        workouts = cur.fetchall()
+        cur.close()
+        conn.close()
+        return workouts
+    except Exception as e:
+        print(f"Database error: {e}")
+        return []

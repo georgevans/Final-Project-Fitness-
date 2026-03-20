@@ -1,2 +1,10 @@
 /workspaces/Final-Project-Fitness-/PyFitness/.env
 PyFitness/.env
+PyFitness/__pycache__
+/workspaces/Final-Project-Fitness-/PyFitness/__pycache__
+PyFitness/routers/__pycache__
+/workspaces/Final-Project-Fitness-/PyFitness/routers/__pycache__
+/workspaces/Final-Project-Fitness-/PyFitness/database/__pycache__
+PyFitness/database/__pycache__
+/workspaces/Final-Project-Fitness-/PyFitness/tests/__pycache__
+PyFitness/tests/__pycache__
