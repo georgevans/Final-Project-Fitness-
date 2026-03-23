@@ -1,0 +1,125 @@
+@import url('main.css');
+
+.signup-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative background accent */
+.signup-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(129, 23, 27, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.signup-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: -200px;
+    left: -200px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(84, 8, 4, 0.2) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.signup-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+    animation: fadeUp 0.4s ease forwards;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.signup-card .brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    color: var(--toasted-almond);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.signup-card h1 {
+    font-size: 2.8rem;
+    line-height: 1;
+    margin-bottom: 32px;
+    color: var(--text-primary);
+}
+
+.signup-card h1 span {
+    color: var(--toasted-almond);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.signup-card input {
+    margin-top: 0;
+}
+
+.signup-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    margin-top: 8px;
+    background: var(--brick-red);
+    border-radius: 8px;
+    letter-spacing: 0.1em;
+}
+
+.signup-btn:hover {
+    background: var(--rosy-copper);
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.login-link a {
+    color: var(--toasted-almond);
+    font-weight: 500;
+}
+
+.login-link a:hover {
+    color: var(--rosy-copper);
+}
+
+.accent-line {
+    width: 40px;
+    height: 3px;
+    background: var(--toasted-almond);
+    border-radius: 2px;
+    margin-bottom: 24px;
+}
