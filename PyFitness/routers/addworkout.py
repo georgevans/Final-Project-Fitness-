@@ -77,6 +77,19 @@ async def add_workout(error: str = None):
                                 <input type="number" name="calories_${{exerciseCount}}" placeholder="Enter calories"><br><br>
                             </div>
 
+                            <div id="weightFields_${{exerciseCount}}" style="display:none">
+                                <label>Exercise Name</label><br>
+                                <input type="text" name="weightExerciseName_${{exerciseCount}}" placeholder="e.g. Bench Press"><br><br>
+
+                                <label>Difficulty (1-5)</label><br>
+                                <input type="number" name="difficulty_${{exerciseCount}}" placeholder="Enter difficulty" min="1" max="5"><br><br>
+
+                                <div id="setList_${{exerciseCount}}">
+                                </div>
+
+                                <button type="button" onclick="addSet(${{exerciseCount}})">+ Add Set</button><br><br>
+                            </div>
+
                             <button type="button" onclick="removeExercise(${{exerciseCount}})">Remove</button>
                         `;
                         container.appendChild(exercise);
@@ -89,14 +102,38 @@ async def add_workout(error: str = None):
 
                     function handleTypeChange(value, id) {{
                         if (value === "weights") {{
-                            alert("Weights tracking is still under development, please use cardio for now");
-                            document.querySelector(`select[name="workoutType_${{id}}"]`).value = "";
+                            document.getElementById("weightFields_" + id).style.display = "block";
                             document.getElementById("cardioFields_" + id).style.display = "none";
                         }} else if (value === "cardio") {{
                             document.getElementById("cardioFields_" + id).style.display = "block";
+                            document.getElementById("weightFields_" + id).style.display = "none";
                         }} else {{
                             document.getElementById("cardioFields_" + id).style.display = "none";
+                            document.getElementById("weightFields_" + id).style.display = "none";
                         }}
+                    }}
+
+                    function addSet(exerciseId) {{
+                        const setList = document.getElementById("setList_" + exerciseId);
+                        const setCount = setList.children.length + 1;
+
+                        const setDiv = document.createElement("div");
+                        setDiv.id = "set_" + exerciseId + "_" + setCount;
+                        setDiv.style = "border: 1px solid #555; padding: 8px; margin-bottom: 8px;";
+                        setDiv.innerHTML = `
+                            <strong>Set ${{setCount}}</strong><br><br>
+                            <label>Reps</label><br>
+                            <input type="number" name="reps_${{exerciseId}}_${{setCount}}" placeholder="Enter reps"><br><br>
+                            <label>Weight (kg)</label><br>
+                            <input type="number" name="weight_${{exerciseId}}_${{setCount}}" placeholder="Enter weight" step="0.5"><br><br>
+                            <button type="button" onclick="removeSet(${{exerciseId}}, ${{setCount}})">Remove Set</button>
+                        `;
+                        setList.appendChild(setDiv);
+                    }}
+
+                    function removeSet(exerciseId, setId) {{
+                        const set = document.getElementById("set_" + exerciseId + "_" + setId);
+                        set.remove();
                     }}
                 </script>
             </body>
@@ -119,14 +156,33 @@ async def add_workout_post(
 
     exercises = []
     i = 1
-    while f"exerciseName_{i}" in formData:
-        exercises.append({
-            "type": formData.get(f"workoutType_{i}"),
-            "name": formData.get(f"exerciseName_{i}"),
-            "duration": formData.get(f"duration_{i}"),
-            "distance": formData.get(f"distance_{i}"),
-            "calories": formData.get(f"calories_{i}"),
-        })
+    while f"workoutType_{i}" in formData:
+        exerciseType = formData.get(f"workoutType_{i}")
+
+        if exerciseType == "cardio":
+            exercises.append({
+                "type": "cardio",
+                "name": formData.get(f"exerciseName_{i}"),
+                "duration": formData.get(f"duration_{i}"),
+                "distance": formData.get(f"distance_{i}"),
+                "calories": formData.get(f"calories_{i}"),
+                "sets": []
+            })
+        elif exerciseType == "weights":
+            sets = []
+            j = 1
+            while f"reps_{i}_{j}" in formData:
+                sets.append({
+                    "reps": formData.get(f"reps_{i}_{j}"),
+                    "weight": formData.get(f"weight_{i}_{j}"),
+                })
+                j += 1
+            exercises.append({
+                "type": "weights",
+                "name": formData.get(f"weightExerciseName_{i}"),
+                "difficulty": formData.get(f"difficulty_{i}"),
+                "sets": sets
+            })
         i += 1
 
     if len(exercises) <= 0:
@@ -155,31 +211,37 @@ async def add_workout_post(
         )
         workoutId = cursor.fetchone()[0]
 
-        for i in range(len(exercises)):
-            type = exercises[i]["type"]
-            name = exercises[i]["name"]
-            duration = exercises[i]["duration"]
-            distance = exercises[i]["distance"]
-            calories = exercises[i]["calories"]
+        for exercise in exercises:
             cursor.execute(
-                'INSERT INTO "Exercise" ( "WorkoutID", "Name", "Type") VALUES (%s, %s, %s) RETURNING "ExerciseID"',
-                (workoutId, name, type)
+                'INSERT INTO "Exercise" ("WorkoutID", "Name", "Type") VALUES (%s, %s, %s) RETURNING "ExerciseID"',
+                (workoutId, exercise["name"], exercise["type"])
             )
             exerciseId = cursor.fetchone()[0]
-            if type == "cardio":
+
+            if exercise["type"] == "cardio":
                 cursor.execute(
-                    'INSERT INTO "Cardio" ( "ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories") VALUES (%s, %s, %s, %s, %s, %s)',
-                    (exerciseId, duration, distance, "km", "m", calories)
+                    'INSERT INTO "Cardio" ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories") VALUES (%s, %s, %s, %s, %s, %s)',
+                    (exerciseId, exercise["duration"], exercise["distance"], "minutes", "km", exercise["calories"])
                 )
-            else:
-                print("Weight logging not developed")
+            elif exercise["type"] == "weights":
+                cursor.execute(
+                    'INSERT INTO "Exercise" ("WorkoutID", "Name", "Type", "Difficulty") VALUES (%s, %s, %s, %s) RETURNING "ExerciseID"',
+                    (workoutId, exercise["name"], exercise["type"], exercise["difficulty"])
+                )
+                exerciseId = cursor.fetchone()[0]
+                for idx, s in enumerate(exercise["sets"]):
+                    cursor.execute(
+                        'INSERT INTO "ExerciseSet" ("ExerciseID", "SetNumber", "Reps", "Weight") VALUES (%s, %s, %s, %s)',
+                        (exerciseId, idx + 1, s["reps"], s["weight"])
+                    )
+
         conn.commit()
         cursor.close()
         conn.close()
     except Exception as e:
         print(f"Database error (addworkout): {e}")
         return RedirectResponse(url=f"/add-workout?error=Workout+logging+failed", status_code=303)
-        
+
     # Show success to user
 
     return RedirectResponse(url="/home", status_code=303)
