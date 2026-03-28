@@ -236,3 +236,6 @@ async def add_programme(
 
     return RedirectResponse(url="/programmes?success=Programme+created!", status_code=303)
 
+# implement the delete feature
+# implement the view schedule page
+# log completed programme
