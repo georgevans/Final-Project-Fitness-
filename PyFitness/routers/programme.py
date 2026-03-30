@@ -236,6 +236,31 @@ async def add_programme(
 
     return RedirectResponse(url="/programmes?success=Programme+created!", status_code=303)
 
+
 # implement the delete feature
+
+@router.post("/programmes/delete")
+async def delete_programme(request: Request, programmeId: int = Form(...)):
+    if "userId" not in request.session:
+        return RedirectResponse(url="/login?error=Please+log+in", status_code=303)  
+    
+    userId = request.session["userId"]
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            'DELETE FROM "Programme" WHERE "ProgrammeID" = %s AND "userID" = %s',
+            (programmeId, userId)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Database error: {e}")
+        return RedirectResponse(url="/programmes?error=Failed+to+delete", status_code=303)
+
+    return RedirectResponse(url="/programme?sucess=Programme+deleted", status_code=303)
+
 # implement the view schedule page
 # log completed programme
