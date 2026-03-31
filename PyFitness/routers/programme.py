@@ -351,3 +351,30 @@ async def view_programme(request: Request, programmeId: int):
         </html>
     """
 
+# add complete programme
+
+
+@router.post("/programmes/complete")
+async def complete_day(
+    request: Request,
+    programmeDayId: int = Form(...),
+    programmeId: int = Form(...),
+    notes: str = Form(None)
+):
+    if "userId" not in request.session:
+        return RedirectResponse(url="/login?error=Please+log+in", status_code=303)
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            'UPDATE "ProgrammeDay" SET "Completed" = NOT "Completed", "Notes" = %s WHERE "ProgrammeDayID" = %s',
+            (notes or None, programmeDayId)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Database error: {e}")
+
+    return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)
