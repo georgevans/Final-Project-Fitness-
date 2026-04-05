@@ -65,6 +65,8 @@ async def home(request: Request):
                     <h3>Hi, {request.session["username"]}</h3>
                     <h4>Workouts</h4>
                     {workout_html}
+                    <h2>Today's Training</h2>
+                    {today_html}
                 </div>
             </body>
         </html>
