@@ -351,9 +351,6 @@ async def view_programme(request: Request, programmeId: int):
         </html>
     """
 
-# add complete programme
-
-
 @router.post("/programmes/complete")
 async def complete_day(
     request: Request,
