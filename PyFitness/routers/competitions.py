@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection
-
+from datetime import datetime
 router = APIRouter()
 
 
@@ -11,9 +11,9 @@ async def competitions(request: Request, error: str = None):
 
     # Authentication check
     if "userId" not in request.session:
-        return RedirectResponse(url="/competitions?error=Please+log+in", status_code=303)
+        return RedirectResponse(url="/login?error=Please+log+in", status_code=303)
 
-    # Fetch competitions and personal bests from the database 
+    # Fetch competitions and personal bests from the database
     userId = request.session["userId"]
 
     competition_rows = ""
@@ -39,6 +39,7 @@ async def competitions(request: Request, error: str = None):
             competitionId = comp[0]
             race = comp[1]
             date = comp[2]
+            # Don't show null description in table
             description = comp[3] if comp[3] else ""
 
             competition_rows += f"""
@@ -149,9 +150,10 @@ async def competitions(request: Request, error: str = None):
                         <button type="button" class="add-competition-btn" onclick="addCompetition()">+ Add Competition</button>
                         
                         <form action="/competitions" method="post">
+                            <input type="hidden" id="competitionCount" name="competitionCount" value="0">
                             <div id="competitionContainer"></div>
                             <div id="saveButtonContainer" style="display:none;">
-                                <button type="submit">Save Competition</button>
+                                <button type="submit">Save Competitions</button>
                             </div>
                         </form>
                         
@@ -196,6 +198,7 @@ async def competitions(request: Request, error: str = None):
                     function addCompetition() {{
                         competitionCount++;
                         const container = document.getElementById("competitionContainer");
+                        document.getElementById("competitionCount").value = competitionCount;
 
                         const competition = document.createElement("div");
                         competition.id = "competition_" + competitionCount;
@@ -243,6 +246,7 @@ async def competitions(request: Request, error: str = None):
                         const container = document.getElementById("competitionContainer");
                         if (container.children.length === 0) {{
                             document.getElementById("saveButtonContainer").style.display = "none";
+                            document.getElementById("competitionCount").value = 0;
                         }}
                     }}
 
@@ -293,11 +297,42 @@ async def competitions(request: Request, error: str = None):
             </body>
         </html>
     """
+# Validation functions
+##############################
+def validate_competition(race: str, competition_type: str, date: str, distance: float, description: str):
+    errors = []
 
+    if not race:
+        errors.append("Race is required.")
+    elif len(race.strip()) > 25:
+        errors.append("Race must be 25 characters or fewer.")
+
+    if not competition_type or competition_type not in ["Run", "Cycle", "Swim", "Half Marathon", "Marathon", "Triathlon"]:
+        errors.append("Type is required.")
+
+    if not distance or distance <= 0:
+        errors.append("Distance is required.")
+
+    if not date:
+        errors.append("Date is required.")
+    else:
+        try:
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            errors.append("Date must be in YYYY-MM-DD format.")
+
+    # Description is optional but must be 100 characters or fewer if provided
+    if len(description) > 100:
+        errors.append("Description must be 100 characters or fewer.")
+
+    return errors
+#####################################
 
 @router.post("/competitions")
 async def add_competition_post(request: Request):
+
     # Authentication check
+    
     if "userId" not in request.session:
         return RedirectResponse(url="/competitions?error=Please+log+in", status_code=303)
 
@@ -305,34 +340,45 @@ async def add_competition_post(request: Request):
     formData = await request.form()
     userId = request.session["userId"]
     competitions = []
-    i = 1
 
-    # Using date field as the indicator for whether a competition entry exists since it's required, looping until no more competitions are found in the form data
-    while f"race_{i}" in formData:
+    competition_indices = sorted(
+        int(key.split("_", 1)[1])
+        for key in formData.keys()
+        if key.startswith("race_") and key.split("_", 1)[1].isdigit()
+    )
+
+    for i in competition_indices:
         race = formData.get(f"race_{i}", "").strip()
-        date = formData.get(f"date_{i}", "").strip()
-        description = formData.get(f"description_{i}", "").strip()
+        competition_type = formData.get(f"type_{i}", "").strip()
 
-
-        if not date or not race:
+        distance_str = formData.get(f"distance_{i}", "").strip()
+        try:
+            distance = float(distance_str) if distance_str else 0
+        except ValueError:
             return RedirectResponse(
-                url="/competitions?error=Date+and+race+are+required+for+all+competitions",
+                url="/competitions?error=Distance+must+be+a+number",
                 status_code=303
             )
+
+        date_str = formData.get(f"date_{i}", "").strip()
+        description = formData.get(f"description_{i}", "").strip()
+
+        errors = validate_competition(race, competition_type, date_str, distance, description)
+
+        if errors:
+            error_message = "+".join(errors)
+            return RedirectResponse(
+                url=f"/competitions?error={error_message}",
+                status_code=303
+            )
+
+        date = datetime.strptime(date_str, "%Y-%m-%d")
 
         competitions.append({
             "race": race,
             "date": date,
             "description": description
         })
-        i += 1
-
-    # Check if any competitions were added
-    if len(competitions) <= 0:
-        return RedirectResponse(
-            url="/competitions?error=Add+at+least+one+competition",
-            status_code=303
-        )
 
     try:
         conn = get_connection()
