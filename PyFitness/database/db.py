@@ -35,3 +35,20 @@ def get_workouts_by_user(userId: int):
     except Exception as e:
         print(f"Database error: {e}")
         return []
+
+def get_todays_programme(user_id: int, day_of_week: str):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            '''SELECT pd."ActivityName", pd."ActivityType", pd."Completed", p."Name"
+               FROM "ProgrammeDay" pd
+               JOIN "Programme" p ON pd."ProgrammeID" = p."ProgrammeID"
+               WHERE p."UserID" = %s AND pd."DayOfWeek" = %s
+               AND p."StartDate" <= CURRENT_DATE AND p."EndDate" >= CURRENT_DATE''',
+            (user_id, day_of_week)
+        )
+        return cur.fetchall()
+    except Exception as e:
+        print(f"Database error: {e}")
+        return []
