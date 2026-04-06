@@ -58,6 +58,7 @@ async def home(request: Request):
                             <a href="/home">Home</a>
                             <a href="/add-workout">Add Workout</a>
                             <a href="/programmes">Programmes</a>
+                            <a href="/competitions">Competitions</a>
                             <a href="/settings">Settings</a>
                             <a href="/logout" class="nav-btn">Logout</a>
                         </div>
