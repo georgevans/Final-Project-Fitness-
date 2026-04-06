@@ -312,7 +312,7 @@ def validate_competition(race: str, competition_type: str, date: str, distance: 
 
     if not distance or distance <= 0:
         errors.append("Distance is required.")
-    elif distance % 5 != 0:
+    elif distance % 5 != 0 and competition_type in ["Run", "Cycle", "Swim"]:
         errors.append("Distance must be in increments of 5 km.")
 
     if not date:
@@ -328,6 +328,18 @@ def validate_competition(race: str, competition_type: str, date: str, distance: 
         errors.append("Description must be 100 characters or fewer.")
 
     return errors
+
+def validate_result_time(result_time: str):
+    
+    if not result_time:
+        return "Result time is required."
+    try:
+        time = float(result_time)
+        if time <= 0:
+            return "Result time must be a positive number."
+    except ValueError:
+        return "Result time must be a number."
+    return None
 #####################################
 
 @router.post("/competitions")
@@ -349,10 +361,16 @@ async def add_competition_post(request: Request):
         if key.startswith("race_") and key.split("_", 1)[1].isdigit()
     )
 
+    if not competition_indices:
+        return RedirectResponse(
+            url="/competitions?error=No+competition+data+submitted",
+            status_code=303
+        )
+
     for i in competition_indices:
         race = formData.get(f"race_{i}", "").strip()
         competition_type = formData.get(f"type_{i}", "").strip()
-
+        
         distance_str = formData.get(f"distance_{i}", "").strip()
         try:
             distance = float(distance_str) if distance_str else 0
@@ -369,6 +387,7 @@ async def add_competition_post(request: Request):
 
         if errors:
             error_message = "+".join(errors)
+            error_message = error_message.replace(" ", "+")
             return RedirectResponse(
                 url=f"/competitions?error={error_message}",
                 status_code=303
@@ -378,6 +397,8 @@ async def add_competition_post(request: Request):
 
         competitions.append({
             "race": race,
+            "competition_type": competition_type,
+            "distance": distance,
             "date": date,
             "description": description
         })
@@ -425,17 +446,12 @@ async def complete_competition_post(
         )
 
     userId = request.session["userId"]
-
-    if not resultTime.strip():
+    time_error = validate_result_time(resultTime)
+    if time_error:
         return RedirectResponse(
-            url="/competitions?error=Result+time+is+required",
+            url=f"/competitions?error={time_error.replace(' ', '+')}",
             status_code=303
         )
-    elif not resultTime.isdigit() or int(resultTime) <= 0:
-        return RedirectResponse(
-            url="/competitions?error=Result+time+must+be+a+positive+number",
-            status_code=303
-        )   
     try:
         conn = get_connection()
         cursor = conn.cursor()
