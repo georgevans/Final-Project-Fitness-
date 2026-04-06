@@ -36,7 +36,7 @@ jobs:
 
       - name: Run Bandit
         run: |
-          bandit -r . -x PyFitness/tests
+          bandit -r . -x tests
 
       - name: Run pip-audit
         run: |
