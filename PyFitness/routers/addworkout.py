@@ -240,7 +240,7 @@ async def add_workout_post(
         conn.close()
     except Exception as e:
         print(f"Database error (addworkout): {e}")
-        return RedirectResponse(url=f"/add-workout?error=Workout+logging+failed", status_code=303)
+        return RedirectResponse(url="/add-workout?error=Workout+logging+failed", status_code=303)
 
     # Show success to user
 
