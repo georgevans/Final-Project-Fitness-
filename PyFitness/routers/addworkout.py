@@ -141,12 +141,6 @@ async def add_workout(error: str = None):
         </html>
     """
 
-# to do:
-"""
-Need to refactor post so that handles exercises and adds to db
-Need to show user on home page that newly added workout has been added and display all their workouts on that page.
-"""
-
 @router.post("/add-workout")
 async def add_workout_post(
     request: Request,
@@ -243,6 +237,5 @@ async def add_workout_post(
         print(f"Database error (addworkout): {e}")
         return RedirectResponse(url="/add-workout?error=Workout+logging+failed", status_code=303)
 
-    # Show success to user
 
     return RedirectResponse(url="/home", status_code=303)

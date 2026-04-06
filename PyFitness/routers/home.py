@@ -20,7 +20,7 @@ async def home(request: Request):
         for i in range(len(workouts)):
             workout_html += f"""
                 <div>
-                    <h3>Workout {i+1}</h3>
+                    <h3>Workouts {i+1}</h3>
                     <h5>{workouts[i][1]}</h5>
                     <p>Date: {workouts[i][2]}</p>
                     <p>Time: {workouts[i][3]}</p>

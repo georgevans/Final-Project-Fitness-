@@ -138,3 +138,19 @@ def test_add_workout_mixed_exercises_parsed():
     }, follow_redirects=False)
     assert response.status_code == 303
     assert "error" in response.headers["location"]
+
+    def test_signup_post_fails_if_email_already_exists(monkeypatch):
+        def mock_get_user_by_email(email):
+            return (1, "testuser", email)
+
+        monkeypatch.setattr("routers.signup.get_user_by_email", mock_get_user_by_email)
+
+        response = client.post("/signup", data={
+            "username": "testuser",
+            "email": "email@testemail.com",
+            "password": "ValidPassword91!",
+            "confirmPassword": "ValidPassword91!"
+        }, follow_redirects=False)
+
+        assert response.status_code == 303
+        assert "Email+already+in+use" in response.headers["location"]
