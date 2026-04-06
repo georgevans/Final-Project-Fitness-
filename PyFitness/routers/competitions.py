@@ -369,6 +369,8 @@ def validate_competition(race: str, competition_type: str, date: str, distance: 
 
     if not distance or distance <= 0:
         errors.append("Distance is required.")
+    elif distance % 5 != 0:
+        errors.append("Distance must be in increments of 5 km.")
 
     if not date:
         errors.append("Date is required.")
@@ -444,10 +446,10 @@ async def add_competition_post(request: Request):
         for comp in competitions:
             cursor.execute(
                 '''
-                INSERT INTO "Competitions" ("UserID", "Race", "Description", "Date")
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO "Competitions" ("UserID", "Race", "CompetitionType","Distance", "Description", "Date")
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ''',
-                (userId, comp["race"], comp["description"], comp["date"])
+                (userId, comp["race"], comp["competition_type"], comp["distance"],comp["description"], comp["date"])
             )
 
         conn.commit()
@@ -472,7 +474,12 @@ async def complete_competition_post(
 ):
     
     if "userId" not in request.session:
-        return RedirectResponse(url="/login?error=Please+log+in", status_code=303)
+        return RedirectResponse(url="/competitions?error=Please+log+in", status_code=303)
+    if competitionId <= 0:
+        return RedirectResponse(
+            url="/competitions?error=Invalid+competition+ID",
+            status_code=303
+        )
 
     userId = request.session["userId"]
 
@@ -482,7 +489,11 @@ async def complete_competition_post(
             url=f"/competitions?error={error.replace(' ', '+')}",
             status_code=303
         )
-
+    elif not resultTime.isdigit() or int(resultTime) <= 0:
+        return RedirectResponse(
+            url="/competitions?error=Result+time+must+be+a+positive+number",
+            status_code=303
+        )   
     try:
         conn = get_connection()
         cursor = conn.cursor()
