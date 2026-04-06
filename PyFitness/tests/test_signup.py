@@ -79,7 +79,7 @@ def test_login_password_no_special_character():
     assert check_log_in_password("Nospecial98") == "Password must contain a special character"
 
 def test_login_password_valid():
-    assert check_log_in_password("ValidPassword91!") == None
+    assert check_log_in_password("ValidPassword91!") is None
 
 # ========= DB sign up checks ==========
 
