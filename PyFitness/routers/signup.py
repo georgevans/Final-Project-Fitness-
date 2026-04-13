@@ -122,7 +122,7 @@ async def signup_post(
     # Then query database to check email not already registered
 
     if get_user_by_email(email):
-        return RedirectResponse(url=f"/signup?error=Email+already+in+use", status_code=303)
+        return RedirectResponse(url="/signup?error=Email+already+in+use", status_code=303)
 
     # Then we hash here
 
@@ -142,7 +142,7 @@ async def signup_post(
         conn.close()
     except Exception as e:
         print(f"Database error (signup): {e}")
-        return RedirectResponse(url=f"/signup?error=Account+Signup+Failed", status_code=303)
+        return RedirectResponse(url="/signup?error=Account+Signup+Failed", status_code=303)
 
     # Update session information 
 
@@ -173,7 +173,7 @@ async def login_post(
         user = cursor.fetchone()
         cursor.close()
         conn.close()
-    except Exception as e: 
+    except Exception: 
         # Then if its not a valid account return to login page with err msg
         return RedirectResponse(url="/login?error=Login+failed", status_code=303)
     
