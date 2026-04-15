@@ -49,21 +49,24 @@ async def home(request: Request):
             <head>
                 <title>Fitness Tracker - Home</title>
                 <link rel="stylesheet" href="/static/main.css">
+                <link rel="stylesheet" href="/static/home.css">
             </head>
             <body>
-                <div>
+                
                     <nav class="navbar">
                         <a href="/home" class="navbar-brand">Fitness Tracker</a>
                         <div class="navbar-links">
                             <a href="/home">Home</a>
                             <a href="/add-workout">Add Workout</a>
                             <a href="/programmes">Programmes</a>
+                            <a href="/progress">Progress</a>
                             <a href="/settings">Settings</a>
                             <a href="/logout" class="nav-btn">Logout</a>
                         </div>
                     </nav>
-                    <h3>Hi, {request.session["username"]}</h3>
-                    <h4>Workouts</h4>
+                    <div class="home-wrapper">
+                    <div class="home-greeting"><h3>Hi, <span>{request.session["username"]}</span></h3></div>
+                    <p class="section-heading">Workouts</p>
                     {workout_html}
                     <h2>Today's Training</h2>
                     {today_html}
