@@ -39,7 +39,6 @@ def loggedInClient(client):
     except Exception:
         pass
 
-    
 # GET competitions page tests
 
 def test_competitions_redirects_if_not_logged_in(client):

@@ -63,7 +63,7 @@ def test_add_workout_post_redirects_if_not_logged(client):
         "distance_1": "5",
         "calories_1": "300"
     }, follow_redirects=False)
-
+    
     assert response.status_code in (302, 303)
 
 
