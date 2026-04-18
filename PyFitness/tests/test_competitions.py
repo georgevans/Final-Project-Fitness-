@@ -15,8 +15,7 @@ def loggedInClient(client):
         "username": "matt",
         "password": "P@ssword123"
     }, follow_redirects=False)
-    print(response.status_code)
-    print(response.headers.get("location", ""))
+    
     assert response.status_code == 303
     return client
 
