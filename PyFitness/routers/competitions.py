@@ -59,6 +59,7 @@ async def competitions(request: Request, error: str = None):
                                 <input type="number" name="resultTime" min="0" required>
                             </label>
                             <button type="submit">Save Result</button>
+                            <button type="button" onclick="untoggleCompleteForm({competitionId})">Cancel</button>
                         </form>
                     </td>
                 </tr>
@@ -257,6 +258,10 @@ async def competitions(request: Request, error: str = None):
                         }} else {{
                             row.style.display = "none";
                         }}
+                    }}
+                    function untoggleCompleteForm(id) {{
+                        const row = document.getElementById("completeFormRow_" + id);
+                        row.style.display = "none";
                     }}
                     const STANDARD_DISTANCES = {{
                         "Marathon":      42.2,
