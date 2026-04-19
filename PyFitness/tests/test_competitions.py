@@ -26,6 +26,7 @@ def loggedInClient(client):
 
     assert response.status_code == 303
     assert response.headers["location"] == "/home"
+
     yield client  # Tests run here
 
     # Database cleanup - delete the test user after tests complete
