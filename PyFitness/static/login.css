@@ -1,0 +1,135 @@
+@import url('main.css');
+
+.login-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative background accent */
+.login-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(129, 23, 27, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.login-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: -200px;
+    left: -200px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(84, 8, 4, 0.2) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+    animation: fadeUp 0.4s ease forwards;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-card .brand {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.2em;
+    color: var(--toasted-almond);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+
+.login-card h1 {
+    font-size: 2.8rem;
+    line-height: 1;
+    margin-bottom: 32px;
+    color: var(--text-primary);
+}
+
+.login-card h1 span {
+    color: var(--toasted-almond);
+}
+
+.login-form-group {
+    margin-bottom: 20px;
+}
+
+.login-card input {
+    margin-top: 0;
+}
+
+.login-btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    margin-top: 8px;
+    background: var(--brick-red);
+    border-radius: 8px;
+    letter-spacing: 0.1em;
+}
+
+.login-btn:hover {
+    background: var(--rosy-copper);
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.register-link a {
+    color: var(--toasted-almond);
+    font-weight: 500;
+}
+
+.register-link a:hover {
+    color: var(--rosy-copper);
+}
+
+.login-accent-line {
+    width: 40px;
+    height: 3px;
+    background: var(--toasted-almond);
+    border-radius: 2px;
+    margin-bottom: 24px;
+}
+
+.login-error {
+    background: rgba(129, 23, 27, 0.12);
+    border: 1px solid rgba(129, 23, 27, 0.35);
+    color: #f5c2c4;
+    padding: 12px 14px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
