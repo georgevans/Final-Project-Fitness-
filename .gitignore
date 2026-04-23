@@ -16,3 +16,9 @@ PyFitness/.coverage
 PyFitness/.pytest_cache
 /workspaces/Final-Project-Fitness-/PyFitness/.ruff_cache
 PyFitness/.ruff_cache
+workspaces/Final-Project-Fitness-/PyFitness/.coverage
+workspaces/Final-Project-Fitness-/PyFitness/__pycache__/main.cpython-312.pyc
+workspaces/Final-Project-Fitness-/PyFitness/database/__pycache__/db.cpython-312.pyc
+workspaces/Final-Project-Fitness-/PyFitness/routers/__pycache__/home.cpython-312.pyc
+workspaces/Final-Project-Fitness-/PyFitness/routers/__pycache__/signup.cpython-312.pyc
+workspaces/Final-Project-Fitness-/PyFitness/routers/__pycache__/progress.cpython-312.pyc
