@@ -73,7 +73,7 @@ async def login_post(
         user = cursor.fetchone()
         cursor.close()
         conn.close()
-    except Exception as e:
+    except Exception:
         return RedirectResponse(url="/login?error=Login+failed", status_code=303)
 
     if not user:

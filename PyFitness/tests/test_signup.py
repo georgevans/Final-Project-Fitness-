@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from main import app
-from routers.signup import check_sign_up_password, check_log_in_password
+from routers.signup import check_sign_up_password
+from routers.login import check_log_in_password
 
 client = TestClient(app)
 
