@@ -1,5 +1,8 @@
 import psycopg2
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 conn = psycopg2.connect(os.getenv("DATABASE_URL"))
 cur = conn.cursor()
@@ -24,7 +27,11 @@ CREATE TABLE IF NOT EXISTS "Workout" (
 ''')
 
 cur.execute('''
-CREATE TYPE "ActivityType" AS ENUM ('C', 'W');
+DO $$ BEGIN
+    CREATE TYPE "ActivityType" AS ENUM ('C', 'W');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 ''')
 
 cur.execute('''
@@ -37,8 +44,17 @@ CREATE TABLE IF NOT EXISTS "Exercise" (
 ''')
 
 cur.execute('''
-CREATE TYPE "TimeUnit" AS ENUM ('S', 'M', 'H');
-CREATE TYPE "DistanceUnitType" AS ENUM ('km', 'miles');
+DO $$ BEGIN
+    CREATE TYPE "TimeUnit" AS ENUM ('S', 'M', 'H');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE "DistanceUnitType" AS ENUM ('km', 'miles');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 ''')
 
 cur.execute('''
@@ -53,7 +69,11 @@ CREATE TABLE IF NOT EXISTS "Cardio" (
 ''')
 
 cur.execute('''
-CREATE TYPE "DifficultyLevel" AS ENUM ('Low', 'Medium', 'High');
+DO $$ BEGIN
+    CREATE TYPE "DifficultyLevel" AS ENUM ('Low', 'Medium', 'High');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 ''')
 
 cur.execute('''
@@ -64,7 +84,11 @@ CREATE TABLE IF NOT EXISTS "Weights" (
 ''')
 
 cur.execute('''
-CREATE TYPE "UnitType" AS ENUM ('lb', 'kg');
+DO $$ BEGIN
+    CREATE TYPE "UnitType" AS ENUM ('lb', 'kg');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 ''')
 
 cur.execute('''
@@ -80,7 +104,11 @@ CREATE TABLE IF NOT EXISTS "ExerciseSet" (
 ''')
 
 cur.execute('''
-CREATE TYPE "RaceType" AS ENUM ('Run', 'Swim', 'Cycle', 'Triathalon');
+DO $$ BEGIN
+    CREATE TYPE "RaceType" AS ENUM ('Run', 'Swim', 'Cycle', 'Triathalon');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 ''')
 
 cur.execute('''
@@ -129,6 +157,20 @@ CREATE TABLE IF NOT EXISTS "ProgrammeDay" (
   "ActivityName" VARCHAR(100),
   "ActivityType" VARCHAR(10),
   "Completed" BOOLEAN DEFAULT FALSE
+);
+''')
+
+cur.execute('''
+CREATE TABLE IF NOT EXISTS "Competitions" (
+  "CompetitionID" SERIAL PRIMARY KEY,
+  "UserID" INT NOT NULL REFERENCES "Users"("UserID"),
+  "Race" VARCHAR(100) NOT NULL,
+  "CompetitionType" VARCHAR(20) NOT NULL,
+  "Distance" DECIMAL NOT NULL,
+  "Date" DATE NOT NULL,
+  "Description" VARCHAR(100),
+  "Completed" BOOLEAN DEFAULT FALSE,
+  "ResultTime" DECIMAL
 );
 ''')
 
