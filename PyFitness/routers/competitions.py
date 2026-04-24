@@ -2,7 +2,6 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection
 from datetime import datetime
-from collections import defaultdict
 router = APIRouter()
 
 
