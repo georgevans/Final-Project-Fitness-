@@ -90,8 +90,31 @@ async def competitions(request: Request, error: str = None):
                 </tr>
             """
         
-        # Personal Bests pllaceholder 
+        # Personal Bests
+        cursor.execute(
+            '''
+            SELECT "CompetitionType", "Distance", MIN("ResultTime")
+            FROM "Competitions"
+            WHERE "UserID" = %s AND "Completed" = TRUE
+            GROUP BY "CompetitionType", "Distance"
+            ORDER BY "Distance" ASC
+            ''',
+            (userId,)
+        )
+        personal_bests = cursor.fetchall()
 
+        personal_bests_rows = ""
+        for activity, distance, best_time in personal_bests:
+            if activity in ["Marathon", "Triathlon", "Half Marathon"]:
+                pb_name = activity
+            else:
+                pb_name = f"{distance:.0f}K {activity}"
+            personal_bests_rows += f"""
+                <tr>
+                    <td>{pb_name}: {best_time}</td>
+                </tr>
+            """
+        
         cursor.close()
         conn.close()
 
@@ -108,8 +131,13 @@ async def competitions(request: Request, error: str = None):
                 <td colspan="3">Failed to load completed competitions</td>
             </tr>
         """
+        personal_bests_rows = """
+            <tr>
+                <td>Failed to load personal bests</td>
+            </tr>
+        """
 
-    # Show message if no competit;ions or completed competitions
+    # Show message if no competitions or completed competitions
     if not competition_rows:
         competition_rows = """
             <tr>
@@ -121,6 +149,13 @@ async def competitions(request: Request, error: str = None):
         completed_rows = """
             <tr>
                 <td colspan="3">No completed competitions yet</td>
+            </tr>
+        """
+
+    if not personal_bests_rows:
+        personal_bests_rows = """
+            <tr>
+                <td>No personal bests yet</td>
             </tr>
         """
 
@@ -169,13 +204,13 @@ async def competitions(request: Request, error: str = None):
                     </div>
 
                     <div class="section-card">
-                        <h2>Personal Bests</h2>
+                        <h2>Personal Best's</h2>
                         <table>
                             <thead>
-                                <tr><th>ACTIVITY</th><th>DISTANCE</th><th>TIME</th><th>DATE</th></tr>
+                                <tr><th>PERSONAL BEST: TIME(MINS)</th></tr>
                             </thead>
                             <tbody id="personalBestTbody">
-                                <tr><td>Run</td><td>5</td><td>00:22:30</td><td>2026-03-01</td></tr>
+                                {personal_bests_rows}
                             </tbody>
                         </table>
                     </div>
