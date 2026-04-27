@@ -289,12 +289,3 @@ def test_personal_bests_shows_best_time(loggedInClient):
     assert "5K Run" in response.text
     assert "23" in response.text
     assert "45" in response.text
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute('DELETE FROM "Competitions" WHERE "UserID" = %s', (userId,))
-        conn.commit()
-        cursor.close()
-        conn.close()
-    except Exception:
-        pass
