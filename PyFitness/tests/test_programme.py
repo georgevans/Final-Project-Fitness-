@@ -40,7 +40,8 @@ def loggedInClient(client):
         conn.commit()
         cursor.close()
         conn.close()
-    except Exception: pass
+    except Exception:
+        pass
 
 
 def test_add_workout_page_returns_200(loggedInClient):
