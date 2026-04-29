@@ -6,6 +6,8 @@
     background: var(--bg);
     position: relative;
     overflow: hidden;
+
+    display: flow-root;
 }
 
 .workout-wrapper::before {
