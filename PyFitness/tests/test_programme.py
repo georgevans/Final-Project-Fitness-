@@ -1,4 +1,6 @@
 import pytest
+from database.db import get_connection
+import uuid
 from fastapi.testclient import TestClient
 from main import app
 
@@ -10,13 +12,36 @@ def client():
 
 @pytest.fixture
 def loggedInClient(client):
-    response = client.post("/login", data={
-        "username": "tester",
-        "password": "Password123."
+    username = f"testuser_{uuid.uuid4().hex[:8]}"
+    email = f"{username}@example.com"
+    password = "Password123."
+
+    response = client.post("/signup", data={
+        "username": username,
+        "email": email,
+        "password": password,
+        "confirmPassword": password
     }, follow_redirects=False)
 
     assert response.status_code == 303
-    return client
+    assert response.headers["location"] == "/home"
+
+    yield client
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT "UserID" FROM "Users" WHERE "Username" = %s', (username,))
+        user_result = cursor.fetchone()
+        if user_result:
+            userId = user_result[0]
+            cursor.execute('DELETE FROM "Competitions" WHERE "UserID" = %s', (userId,))
+            cursor.execute('DELETE FROM "Users" WHERE "Username" = %s', (username,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception:
+        pass
 
 
 def test_add_workout_page_returns_200(loggedInClient):
@@ -31,7 +56,7 @@ def test_add_workout_page_contains_heading(loggedInClient):
 
 def test_add_workout_contains_form(loggedInClient):
     response = loggedInClient.get("/add-workout")
-    assert "form" in response.text
+    assert "<form" in response.text
 
 
 def test_add_workout_page_contains_workout_name_input(loggedInClient):
@@ -63,7 +88,7 @@ def test_add_workout_post_redirects_if_not_logged(client):
         "distance_1": "5",
         "calories_1": "300"
     }, follow_redirects=False)
-    
+
     assert response.status_code in (302, 303)
 
 
