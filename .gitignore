@@ -22,3 +22,4 @@ workspaces/Final-Project-Fitness-/PyFitness/database/__pycache__/db.cpython-312.
 workspaces/Final-Project-Fitness-/PyFitness/routers/__pycache__/home.cpython-312.pyc
 workspaces/Final-Project-Fitness-/PyFitness/routers/__pycache__/signup.cpython-312.pyc
 workspaces/Final-Project-Fitness-/PyFitness/routers/__pycache__/progress.cpython-312.pyc
+.env
