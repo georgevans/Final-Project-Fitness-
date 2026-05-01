@@ -18,17 +18,17 @@ async def add_workout(error: str = None):
                 <link rel="stylesheet" href="/static/addworkout.css">
             </head>
             <body>
+                <nav class="navbar">
+                    <a href="/home" class="navbar-brand">Fitness Tracker</a>
+                    <div class="navbar-links">
+                        <a href="/home">Home</a>
+                        <a href="/add-workout">Add Workout</a>
+                        <a href="/programmes">Programmes</a>
+                        <a href="/settings">Settings</a>
+                        <a href="/logout" class="nav-btn">Logout</a>
+                    </div>
+                </nav>
                 <div class="workout-wrapper">
-                    <nav class="navbar">
-                        <a href="/home" class="navbar-brand">Fitness Tracker</a>
-                        <div class="navbar-links">
-                            <a href="/home">Home</a>
-                            <a href="/add-workout">Add Workout</a>
-                            <a href="/programmes">Programmes</a>
-                            <a href="/settings">Settings</a>
-                            <a href="/logout" class="nav-btn">Logout</a>
-                        </div>
-                    </nav>
                     <div class="workout-card">
                         <div class="accent-line"></div>
                         {error_html}
