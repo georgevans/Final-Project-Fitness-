@@ -94,3 +94,27 @@ def get_workout_summary(userId: int):
     except Exception as e:
         print(f"Database error (progress): {e}")
         return {"weekly": [], "this_week": 0, "this_month": 0}
+    
+
+
+def get_workout_type_summary(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            '''SELECT DATE_TRUNC('week', w."WorkoutDate"), e."Type", COUNT(*)
+               FROM "Workout" w
+               JOIN "Exercise" e ON w."WorkoutID" = e."WorkoutID"
+               WHERE w."UserID" = %s
+               AND w."WorkoutDate" >= CURRENT_DATE - INTERVAL '8 weeks'
+               GROUP BY DATE_TRUNC('week', w."WorkoutDate"), e."Type"
+               ORDER BY DATE_TRUNC('week', w."WorkoutDate") ASC''',
+            (userId,)
+        )
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return rows
+    except Exception as e:
+        print(f"Database error: {e}")
+        return []

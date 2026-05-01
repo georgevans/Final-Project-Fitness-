@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from database.db import get_workout_summary
-import json
+from database.db import get_workout_summary, get_workout_type_summary
+import json  
 
 router = APIRouter()
 
@@ -12,16 +12,27 @@ async def progress(request: Request):
 
     userId = request.session["userId"]
     summary = get_workout_summary(userId)
+    type_data = get_workout_type_summary(userId)
 
     this_week = summary["this_week"]
     this_month = summary["this_month"]
-    weekly = summary["weekly"]
-
-    labels = [str(row[0].strftime("%d %b")) for row in weekly]
-    data = [row[1] for row in weekly]
-
-    labels_json = json.dumps(labels)
-    data_json = json.dumps(data)
+    
+    weeks = sorted(set(str(row[0].strftime("%d %b")) for row in type_data))
+    cardio_map = {}
+    weights_map = {}
+    for row in type_data:
+        week_label = str(row[0].strftime("%d %b"))
+    if row[1] == "cardio":
+        cardio_map[week_label] = row[2]
+    elif row[1] == "weights":
+        weights_map[week_label] = row[2]
+    
+    cardio_data = [cardio_map.get(w, 0) for w in weeks]
+    weights_data = [weights_map.get(w, 0) for w in weeks]
+    labels_json = json.dumps(weeks)
+    cardio_json = json.dumps(cardio_data)
+    weights_json = json.dumps(weights_data)
+   
 
     return f"""
         <html>
@@ -37,7 +48,8 @@ async def progress(request: Request):
                     <div class="navbar-links">
                         <a href="/home">Home</a>
                         <a href="/add-workout">Add Workout</a>
-                        <a href="/progress">Progress</a>
+                        <a href="/programmes">Programmes</a>
+                        <a href="/progress" class="active">Progress</a>
                         <a href="/settings">Settings</a>
                         <a href="/logout" class="nav-btn">Logout</a>
                     </div>
@@ -59,31 +71,48 @@ async def progress(request: Request):
                         </div>
                     </div>
                     <div class="chart-card">
-                        <p class="section-heading">Workouts Per Week</p>
+                        <p class="section-heading">Weekly Training Breakdown</p>
+                        <div class="chart-legend">
+                            <span class="legend-cardio">Cardio</span>
+                            <span class="legend-weights">Weights</span>
+                        </div>
                         <canvas id="progressChart"></canvas>
                     </div>
                 </div>
                 <script>
                     const labels = {labels_json};
-                    const data = {data_json};
+                    const cardioData = {cardio_json};
+                    const weightsData = {weights_json};
                     const ctx = document.getElementById('progressChart').getContext('2d');
                     new Chart(ctx, {{
-                        type: 'bar',
+                        type: 'line',
                         data: {{
                             labels: labels,
-                            datasets: [{{
-                                label: 'Workouts',
-                                data: data,
-                                backgroundColor: 'rgba(234, 140, 85, 0.7)',
-                                borderColor: '#EA8C55',
-                                borderWidth: 1,
-                                borderRadius: 6,
-                            }}]
+                            datasets: [
+                                {{
+                                    label: 'Cardio',
+                                    data: cardioData,
+                                    borderColor: '#EA8C55',
+                                    backgroundColor: 'rgba(234, 140, 85, 0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.3,
+                                    fill: true
+                                }},
+                                {{
+                                    label: 'Weights',
+                                    data: weightsData,
+                                    borderColor: '#C75146',
+                                    backgroundColor: 'rgba(199, 81, 70, 0.1)',
+                                    borderWidth: 2,
+                                    tension: 0.3,
+                                    fill: true
+                                }}
+                            ]
                         }},
                         options: {{
                             responsive: true,
                             plugins: {{
-                                legend: {{ display: false }},
+                                legend: {{ display: false }}
                             }},
                             scales: {{
                                 x: {{
@@ -97,7 +126,7 @@ async def progress(request: Request):
                                 }}
                             }}
                         }}
-                    }});
+                    }});  
                 </script>
             </body>
         </html>

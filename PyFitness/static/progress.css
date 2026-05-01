@@ -91,3 +91,25 @@
     height: 1px;
     background-color: var(--border);
 }
+
+.chart-legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.legend-cardio {
+    color: #EA8C55;
+    font-size: 0.85rem;
+    padding: 4px 12px;
+    border: 1px solid #EA8C55;
+    border-radius: 20px;
+}
+
+.legend-weights {
+    color: #C75146;
+    font-size: 0.85rem;
+    padding: 4px 12px;
+    border: 1px solid #C75146;
+    border-radius: 20px;
+}
