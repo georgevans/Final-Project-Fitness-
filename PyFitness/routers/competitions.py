@@ -164,6 +164,8 @@ async def competitions(request: Request, error: str = None):
         <html>
             <head>
                 <title>Competitions</title>
+                <link rel="stylesheet" href="/static/main.css">
+                <link rel="stylesheet" href="/static/competitions.css">
             </head>
             <body>
                 <div class="workout-wrapper">
