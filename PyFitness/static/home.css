@@ -1,0 +1,75 @@
+.home-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 32px;
+}
+
+
+.workout-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--toasted-almond);
+    border-radius: 12px; /* Slightly larger border radius for a smoother look */
+    padding: 20px;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Softer shadow for a cleaner look */
+
+}
+
+.workout-card:hover {
+    border-color: var(--toasted-almond);
+    background: var(--surface-raised);
+    transform: translateY(-4px); /* Slightly more pronounced hover effect */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25); /* Enhanced shadow on hover */
+}
+
+/* workout number label */
+.workout-card h3 {
+    font-size: 0.9rem; /* Slightly larger font size for better readability */
+    letter-spacing: 0.1em;
+    color: var(--toasted-almond);
+    margin-bottom: 6px; /* Increased spacing for better separation */
+}
+
+/* workout name */
+.workout-card h5 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem; /* Slightly larger font size for emphasis */
+    font-weight: 700; /* Increased font weight for better visibility */
+    color: var(--text-primary);
+    margin-bottom: 16px; /* Increased spacing for better layout */
+}
+
+/* date and time rows */
+.workout-card p {
+    font-size: 0.9rem; /* Slightly larger font size for better readability */
+    color: var(--text-secondary);
+    margin-bottom: 6px; /* Increased spacing for better separation */
+}
+
+/* programme card */
+.card {
+    background: var(--surface);
+    border: 2px solid var(--border); /* Consistent border styling with workout cards */
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
+.home-wrapper h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    margin-top: 20px;
+    letter-spacing: 0.05em;
+}
