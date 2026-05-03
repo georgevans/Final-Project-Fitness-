@@ -45,6 +45,7 @@ async def home(request: Request):
                 <div class="card">
                     <h4>Session: {session[3]}</h4>
                     <p><strong>Status:</strong> {status}</p>
+                    <a href="/programmes"><button style="float: right;">View Programme</button></a>
                 </div>
             """
     else:
@@ -78,13 +79,58 @@ async def home(request: Request):
                     </nav>
                     <div class="home-wrapper">
                     <div class="home-greeting"><h3>Hi, <span>{request.session["username"]}</span></h3></div>
-                    <h2>Workouts</h2>
+                    <h2>My <span>Workouts</span></h2>
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="Search workouts..." onkeyup="filterWorkouts()">
+                        <select id="sortSelect" onchange="sortWorkouts()">
+                            <option value="default">Sort by: Default</option>
+                            <option value="az">Sort: A to Z</option>
+                            <option value="za">Sort: Z to A</option>
+                            <option value="newest">Sort: Newest First</option>
+                            <option value="oldest">Sort: Oldest First</option>
+                        </select>
+                    </div>
                     {workout_html}
                     <div class="today-section">
-                        <h2>Today's Training</h2>
+                        <h2>Today's <span>Training</span></h2>
                         {today_html}
                     </div>
                 </div>
+                <script>
+                    function filterWorkouts() {{
+                        const input = document.getElementById('searchInput').value.toLowerCase();
+                        const cards = document.querySelectorAll('.workout-card');
+                        for (let i = 0; i < cards.length; i++) {{
+                            const title = cards[i].querySelector('h5').textContent.toLowerCase();
+                            if (title.includes(input)) {{
+                                cards[i].style.display = 'block';
+                            }} else {{
+                                cards[i].style.display = 'none';
+                            }}
+                        }}
+                    }}
+
+                    function sortWorkouts() {{
+                        const sort = document.getElementById('sortSelect').value;
+                        const grid = document.querySelector('.workout-grid');
+                        if (!grid) return;
+                        const cards = Array.from(grid.children);
+                        cards.sort(function(a, b) {{
+                            const titleA = a.querySelector('h5').textContent.toLowerCase();
+                            const titleB = b.querySelector('h5').textContent.toLowerCase();
+                            const dateA = a.querySelectorAll('p')[0].textContent;
+                            const dateB = b.querySelectorAll('p')[0].textContent;
+                            if (sort === 'az') return titleA.localeCompare(titleB);
+                            if (sort === 'za') return titleB.localeCompare(titleA);
+                            if (sort === 'newest') return dateB.localeCompare(dateA);
+                            if (sort === 'oldest') return dateA.localeCompare(dateB);
+                            return 0;
+                        }});
+                        for (let i = 0; i < cards.length; i++) {{
+                            grid.appendChild(cards[i]);
+                        }}
+                    }}
+                </script>
             </body>
         </html>
     """
