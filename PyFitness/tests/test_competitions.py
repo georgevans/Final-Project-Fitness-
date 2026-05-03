@@ -85,7 +85,37 @@ def test_competitions_page_shows_error(loggedInClient):
     client, _ = loggedInClient
     response = client.get("/competitions?error=Something+went+wrong",follow_redirects=False)
     assert "Something went wrong" in response.text
+    
+# Parameterized test for upcoming competitions
+@pytest.mark.parametrize("race, date, description", [
+    ("Park Run", "2026-06-01", "Local race"),
+    ("City Marathon", "2026-10-01", "Big event"),
+    ("Swim Race", "2026-08-15", ""),
+])
+def test_upcoming_competitions_display_in_table(loggedInClient, race, date, description):
+    client, username = loggedInClient
 
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT "UserID" FROM "Users" WHERE "Username" = %s', (username,))
+    userId = cursor.fetchone()[0]
+
+    cursor.execute('''
+        INSERT INTO "Competitions" ("Race", "CompetitionType", "Distance", "Date", "Description", "UserID", "Completed")
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+    ''', (race, "Run", 5, date, description, userId, False))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    response = client.get("/competitions")
+
+    assert response.status_code == 200
+    assert race in response.text
+    assert date in response.text
+    assert description in response.text
+    assert "Complete" in response.text
 
 # POST competitions auth and validation tests
 
@@ -218,6 +248,8 @@ def test_complete_competition_invalid_id_returns_error(loggedInClient):
     }, follow_redirects=False)
     assert response.status_code == 303
     assert "error" in response.headers["location"]
+
+
 
 
 ## validation function tests using parameterization

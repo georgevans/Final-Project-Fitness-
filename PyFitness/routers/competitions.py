@@ -2,6 +2,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection
 from datetime import datetime
+
 router = APIRouter()
 
 
@@ -35,24 +36,43 @@ async def competitions(request: Request, error: str = None):
         )
         upcoming_competitions = cursor.fetchall()
 
+        today = datetime.now().date()
+
         for comp in upcoming_competitions:
             competitionId = comp[0]
             race = comp[1]
             date = comp[2]
-            # Don't show null description in table
             description = comp[3] if comp[3] else ""
+
+            comp_date = date
+            if isinstance(comp_date, str):
+                comp_date = datetime.strptime(comp_date, "%Y-%m-%d").date()
+            elif isinstance(comp_date, datetime):
+                comp_date = comp_date.date()
+
+            days_remaining = (comp_date - today).days
+
+            if days_remaining == 0:
+                countdown_text = "Today"
+            elif days_remaining == 1:
+                countdown_text = "Tomorrow"
+            elif days_remaining < 0:
+                countdown_text = f"{abs(days_remaining)} days ago"
+            else:
+                countdown_text = f"{days_remaining} days"
 
             competition_rows += f"""
                 <tr>
                     <td>{race}</td>
                     <td>{date}</td>
                     <td>{description}</td>
+                    <td>{countdown_text}</td>
                     <td>
                         <button type="button" onclick="toggleCompleteForm({competitionId})">Complete</button>
                     </td>
                 </tr>
                 <tr id="completeFormRow_{competitionId}" style="display:none;">
-                    <td colspan="4">
+                    <td colspan="5">
                         <form action="/complete-competition" method="post">
                             <input type="hidden" name="competitionId" value="{competitionId}">
                             <label>Result Time:
@@ -89,7 +109,7 @@ async def competitions(request: Request, error: str = None):
                     <td>{completedDate}</td>
                 </tr>
             """
-        
+
         # Personal Bests
         cursor.execute(
             '''
@@ -109,12 +129,13 @@ async def competitions(request: Request, error: str = None):
                 pb_name = activity
             else:
                 pb_name = f"{distance:.0f}K {activity}"
+
             personal_bests_rows += f"""
                 <tr>
                     <td>{pb_name}: {best_time}</td>
                 </tr>
             """
-        
+
         cursor.close()
         conn.close()
 
@@ -123,7 +144,7 @@ async def competitions(request: Request, error: str = None):
         print(f"Database error (GET competitions): {e}")
         competition_rows = """
             <tr>
-                <td colspan="4">Failed to load upcoming competitions</td>
+                <td colspan="5">Failed to load upcoming competitions</td>
             </tr>
         """
         completed_rows = """
@@ -141,7 +162,7 @@ async def competitions(request: Request, error: str = None):
     if not competition_rows:
         competition_rows = """
             <tr>
-                <td colspan="4">No competitions added yet</td>
+                <td colspan="5">No competitions added yet</td>
             </tr>
         """
 
@@ -184,9 +205,9 @@ async def competitions(request: Request, error: str = None):
 
                     <div class="competition-page">
                         <h2>Upcoming Competitions</h2>
-                        
+
                         <button type="button" class="add-competition-btn" onclick="addCompetition()">+ Add Competition</button>
-                        
+
                         <form action="/competitions" method="post">
                             <input type="hidden" id="competitionCount" name="competitionCount" value="0">
                             <div id="competitionContainer"></div>
@@ -194,10 +215,16 @@ async def competitions(request: Request, error: str = None):
                                 <button type="submit">Save Competitions</button>
                             </div>
                         </form>
-                        
+
                         <table>
                             <thead>
-                                <tr><th>RACE</th><th>DATE(Y-M-D)</th><th>DESCRIPTION</th><th>ACTIONS</th></tr>
+                                <tr>
+                                    <th>RACE</th>
+                                    <th>DATE(Y-M-D)</th>
+                                    <th>DESCRIPTION</th>
+                                    <th>COUNTDOWN</th>
+                                    <th>ACTIONS</th>
+                                </tr>
                             </thead>
                             <tbody>
                                 {competition_rows}
@@ -296,15 +323,18 @@ async def competitions(request: Request, error: str = None):
                             row.style.display = "none";
                         }}
                     }}
+
                     function untoggleCompleteForm(id) {{
                         const row = document.getElementById("completeFormRow_" + id);
                         row.style.display = "none";
                     }}
+
                     const STANDARD_DISTANCES = {{
-                        "Marathon":      42.2,
+                        "Marathon": 42.2,
                         "Half Marathon": 21.1,
-                        "Triathlon":     51.5
+                        "Triathlon": 51.5
                     }};
+
                     const CUSTOM_TYPES = ["Run", "Cycle", "Swim"];
 
                     function updateDistance(competitionCount, type) {{
@@ -321,7 +351,6 @@ async def competitions(request: Request, error: str = None):
                         field.style.display = "block";
 
                         if (CUSTOM_TYPES.includes(type)) {{
-                            // User picks their own distance in increments of 5
                             input.readOnly = false;
                             input.value = "";
                             input.style.background = "";
@@ -329,7 +358,6 @@ async def competitions(request: Request, error: str = None):
                             input.placeholder = "e.g. 10";
                             input.min = "5";
                             input.step = "5";
-
                         }} else {{
                             input.readOnly = true;
                             input.value = STANDARD_DISTANCES[type];
