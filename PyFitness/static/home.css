@@ -58,6 +58,7 @@
     margin-bottom: 16px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
 }
 
 .card:hover {
@@ -72,4 +73,23 @@
     margin-bottom: 20px;
     margin-top: 20px;
     letter-spacing: 0.05em;
+}
+
+.search-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.search-bar input {
+    flex: 1;
+    margin-right: 16px;
+}
+
+.search-bar select {
+    width: 200px;
+}
+
+.home-wrapper h2 span {
+    color: var(--toasted-almond);
 }
