@@ -1,4 +1,5 @@
 import datetime
+import html
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_workouts_by_user, get_todays_programme
@@ -24,10 +25,11 @@ async def home(request: Request):
     else:
         workout_html = "<div class='workout-grid'>"
         for i, workout in enumerate(workouts):
+            title = html.escape(workout[1])
             workout_html += f"""
                 <div class="workout-card">
                     <h3>Workout {i + 1}</h3>
-                    <h5>Title: {workout[1]}</h5>
+                    <h5>Title: {title}</h5>
                     <p><strong>Date:</strong> {workout[2]}</p>
                     <p><strong>Time:</strong> {str(workout[3])[:8]}</p>
                 </div>
