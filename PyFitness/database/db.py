@@ -12,7 +12,7 @@ def get_user_by_email(email):
     try:
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute('SELECT * FROM "Users" WHERE "Email" = %s', (email, ))
+        cur.execute('SELECT "UserID", "Username", "Email" FROM "Users" WHERE "Email" = %s', (email, ))
         user = cur.fetchone()
         cur.close()
         conn.close()
@@ -118,3 +118,80 @@ def get_workout_type_summary(userId: int):
     except Exception as e:
         print(f"Database error: {e}")
         return []
+    
+def get_user_settings(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            '''
+            SELECT weightunit, distanceunit
+            FROM "Settings"
+            WHERE "UserID" = %s
+            ''',
+            (userId,)
+        )
+
+        settings = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        return settings
+
+    except Exception as e:
+        print(f"Database error (get_user_settings): {e}")
+        return None
+    
+def update_user_settings(userId: int, weight_unit: str, distance_unit: str):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            '''
+            UPDATE "Settings"
+            SET
+                weightunit = %s,
+                distanceunit = %s,
+                updatedat = CURRENT_TIMESTAMP
+            WHERE "UserID" = %s
+            ''',
+            (weight_unit, distance_unit, userId)
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return True
+
+    except Exception as e:
+        print(f"Database error (update_user_settings): {e}")
+        return False
+    
+def set_default_settings(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            '''
+            INSERT INTO "Settings" ("UserID", weightunit, distanceunit)
+            VALUES (%s, %s, %s)
+            ON CONFLICT ("UserID")
+            DO NOTHING
+            ''',
+            (userId, 'kg', 'km')
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return True
+
+    except Exception as e:
+        print(f"Database error (set_default_settings): {e}")
+        return False
