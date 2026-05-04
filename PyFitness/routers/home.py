@@ -34,7 +34,7 @@ async def home(request: Request):
                     <p><strong>Time:</strong> {str(workout[3])[:8]}</p>
                 </div>
             """
-    workout_html += "</div>"
+        workout_html += "</div>"
 
     dayOfWeek = datetime.datetime.now().strftime("%A")
     todaysProgramme = get_todays_programme(userId, dayOfWeek)
@@ -122,12 +122,12 @@ async def home(request: Request):
                         cards.sort(function(a, b) {{
                             const titleA = a.querySelector('h5').textContent.toLowerCase();
                             const titleB = b.querySelector('h5').textContent.toLowerCase();
-                            const dateA = a.querySelectorAll('p')[0].textContent;
-                            const dateB = b.querySelectorAll('p')[0].textContent;
-                            if (sort === 'az') return titleA.localeCompare(titleB);
-                            if (sort === 'za') return titleB.localeCompare(titleA);
-                            if (sort === 'newest') return dateB.localeCompare(dateA);
-                            if (sort === 'oldest') return dateA.localeCompare(dateB);
+                            const dateA = new Date(a.querySelector('[data-date]').dataset.date);
+                            const dateB = new Date(b.querySelector('[data-date]').dataset.date);
+
+                            if (sort === 'newest') return dateB - dateA;
+                            if (sort === 'oldest') return dateA - dateB;
+                            
                             return 0;
                         }});
                         for (let i = 0; i < cards.length; i++) {{
