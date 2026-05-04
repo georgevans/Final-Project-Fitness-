@@ -45,7 +45,9 @@ async def home(request: Request):
                 <div class="card">
                     <h4>Session: {session[3]}</h4>
                     <p><strong>Status:</strong> {status}</p>
-                    <a href="/programmes"><button style="float: right;">View Programme</button></a>
+                    <a href="/programmes">
+                        <button>View Programme</button>
+                    </a>
                 </div>
             """
     else:
