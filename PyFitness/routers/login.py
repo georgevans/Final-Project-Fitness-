@@ -2,7 +2,7 @@ import re
 import bcrypt
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from database.db import get_connection
+from database.db import get_connection, set_default_settings, get_user_settings
 
 router = APIRouter()
 
@@ -86,5 +86,12 @@ async def login_post(
     # Save session and return to home
     request.session["userId"] = user[0]
     request.session["username"] = username
+
+    # Check if default settings exist
+
+    userId = request.session["userId"]
+
+    if get_user_settings(userId) == None:
+        set_default_settings(userId)
 
     return RedirectResponse(url="/home", status_code=303)
