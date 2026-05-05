@@ -13,6 +13,9 @@ async def settings(request: Request):
 
     settings = get_user_settings(userId)
 
+    weight_unit = settings[0] if settings else "kg"
+    distance_unit = settings[1] if settings else "km"
+
     return f"""
         <html>
             <head>
@@ -39,16 +42,16 @@ async def settings(request: Request):
                             <div class="form-group">
                                 <label>Weight Unit</label>
                                 <select name="weight_unit">
-                                    <option value="kg">kg</option>
-                                    <option value="lb">lb</option>
+                                    <option value="kg" {"selected" if weight_unit == "kg" else ""}>Kilograms (kg)</option>
+                                    <option value="lb" {"selected" if weight_unit == "lb" else ""}>Pounds (lb)</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
                                 <label>Distance Unit</label>
                                 <select name="distance_unit">
-                                    <option value="km">Kilometres (km)</option>
-                                    <option value="mi">Miles (mi)</option>
+                                    <option value="km" {"selected" if distance_unit == "km" else ""}>Kilometres (km)</option>
+                                    <option value="mi" {"selected" if distance_unit == "mi" else ""}>Miles (mi)</option>
                                 </select>
                             </div>
 
