@@ -38,7 +38,7 @@ def loggedInClient(client):
         user_result = cursor.fetchone()
         if user_result:
             userId = user_result[0]
-            # Delete in order of foreign key dependencies
+            # Delete in order of foreign key dependencies as db was not deleting
             cursor.execute('DELETE FROM "Cardio" WHERE "ExerciseID" IN (SELECT "ExerciseID" FROM "Exercise" WHERE "WorkoutID" IN (SELECT "WorkoutID" FROM "Workout" WHERE "UserID" = %s))', (userId,))
             cursor.execute('DELETE FROM "ExerciseSet" WHERE "ExerciseID" IN (SELECT "ExerciseID" FROM "Exercise" WHERE "WorkoutID" IN (SELECT "WorkoutID" FROM "Workout" WHERE "UserID" = %s))', (userId,))
             cursor.execute('DELETE FROM "Exercise" WHERE "WorkoutID" IN (SELECT "WorkoutID" FROM "Workout" WHERE "UserID" = %s)', (userId,))
