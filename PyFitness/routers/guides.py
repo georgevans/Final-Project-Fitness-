@@ -118,7 +118,7 @@ async def guides(request: Request):
                     <a href="/programmes">Programmes</a>
                     <a href="/competitions">Competitions</a>
                     <a href="/progress">Progress</a>
-                    <a href="/guides" class="active">Guides</a>
+                    <a href="/guides" class="active">Help</a>
                     <a href="/settings">Settings</a>
                     <a href="/logout" class="nav-btn">Logout</a>
                 </div>

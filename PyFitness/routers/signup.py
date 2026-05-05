@@ -1,8 +1,9 @@
 import re
 import bcrypt
+from urllib.parse import urlencode
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from database.db import get_connection, get_user_by_email
+from database.db import get_connection, get_user_by_email, set_default_settings
 
 router = APIRouter()
 
@@ -79,7 +80,7 @@ async def signup_post(
     # This is where we validate all the inputs (password length and complexity etc)
     error = check_sign_up_password(password, confirmPassword)
     if error:
-        return RedirectResponse(url=f"/signup?error={error}", status_code=303)
+        return RedirectResponse(url=f"/signup?{urlencode({'error': error})}", status_code=303)
     
     # Then query database to check email not already registered
 
@@ -109,8 +110,17 @@ async def signup_post(
     # Update session information 
 
     user = get_user_by_email(email)
-    request.session["userId"] = user[0]
+    if not user:
+        return RedirectResponse(
+            url=f"/signup?{urlencode({'error': 'User fetch failed'})}",
+            status_code=303
+        )
+
+    userId = user[0]
+    request.session["userId"] = userId
     request.session["username"] = username
+    
+    set_default_settings(userId)
 
     # Return to home  
     return RedirectResponse(url="/home", status_code=303)
