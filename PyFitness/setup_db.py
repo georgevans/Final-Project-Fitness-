@@ -39,7 +39,8 @@ CREATE TABLE IF NOT EXISTS "Exercise" (
   "ExerciseID" SERIAL PRIMARY KEY,
   "WorkoutID" INT NOT NULL REFERENCES "Workout"("WorkoutID"),
   "Name" VARCHAR(100) NOT NULL,
-  "Type" "ActivityType" NOT NULL
+  "Type" "ActivityType" NOT NULL,
+  "Difficulty" INT
 );
 ''')
 
@@ -62,8 +63,8 @@ CREATE TABLE IF NOT EXISTS "Cardio" (
   "ExerciseID" INT PRIMARY KEY REFERENCES "Exercise"("ExerciseID"),
   "Duration" INT,
   "Distance" DECIMAL,
-  "TimeUnit" "TimeUnit",
-  "DistanceUnit" "DistanceUnitType",
+  "TimeUnit" VARCHAR(20),
+  "DistanceUnit" VARCHAR(5),
   "Calories" INT
 );
 ''')
@@ -98,7 +99,7 @@ CREATE TABLE IF NOT EXISTS "ExerciseSet" (
   "SetNumber" INT NOT NULL,
   "Reps" INT NOT NULL,
   "Weight" DECIMAL,
-  "Unit" "UnitType" NOT NULL,
+  "WeightUnit" VARCHAR(5),
   UNIQUE ("ExerciseID", "SetNumber")
 );
 ''')
