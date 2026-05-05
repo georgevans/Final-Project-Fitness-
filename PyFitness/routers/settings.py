@@ -7,7 +7,7 @@ router = APIRouter()
 @router.get("/settings", response_class=HTMLResponse)
 async def settings(request: Request):
     if "userId" not in request.session:
-        return RedirectResponse("/login")
+        return RedirectResponse("/login=Please+log+in", status_code=303)
     
     userId = request.session["userId"]
 
