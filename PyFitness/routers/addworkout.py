@@ -10,7 +10,11 @@ router = APIRouter()
 async def add_workout(request: Request, error: str = None):
     error_html = f'<p style="color:red;">{error}</p>' if error else ""
 
-    userId = request.session["userId"]
+    userId = request.session.get("userId")  
+    
+    if not userId:
+        return RedirectResponse("/login", status_code=303)
+
     settings = get_user_settings(userId)
 
 
@@ -150,7 +154,11 @@ async def add_workout_post(
     request: Request,
     workoutName: str = Form(...)
 ):
-    userId = request.session["userId"]
+    userId = request.session.get("userId")
+
+    if not userId:
+        return RedirectResponse('/login', status_code=303)
+
     settings = get_user_settings(userId)
 
     weight_unit = settings[0] if settings else "kg"
