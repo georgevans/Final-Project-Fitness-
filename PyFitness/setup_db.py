@@ -137,8 +137,6 @@ CREATE TABLE IF NOT EXISTS "Events" (
 );
 ''')
 
-# Add more tables if needed, like Programme, ProgrammeDay, etc. from DB code
-
 cur.execute('''
 CREATE TABLE IF NOT EXISTS "Programme" (
   "ProgrammeID" SERIAL PRIMARY KEY,
@@ -171,6 +169,17 @@ CREATE TABLE IF NOT EXISTS "Competitions" (
   "Description" VARCHAR(100),
   "Completed" BOOLEAN DEFAULT FALSE,
   "ResultTime" DECIMAL
+);
+''')
+
+cur.execute('''
+CREATE TABLE "Settings" (
+    "SettingsID" SERIAL PRIMARY KEY,
+    "UserID" INTEGER NOT NULL,
+    "WeightUnit" VARCHAR(5),
+    "DistanceUnit" VARCHAR(5),
+    "CreatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "UpdatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ''')
 
