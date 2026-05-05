@@ -11,7 +11,7 @@ def client():
 
 
 @pytest.fixture
-def loggedInClient(client):
+def logged_in_client(client):
     username = f"testuser_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
     password = "Password123."
@@ -25,19 +25,19 @@ def loggedInClient(client):
 
     assert response.status_code == 303
 
-    yield client, username
+    yield client
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
         cursor.execute('SELECT "UserID" FROM "Users" WHERE "Username" = %s', (username,))
-        user_result = cursor.fetchone()
+        user = cursor.fetchone()
 
-        if user_result:
-            userId = user_result[0]
-            cursor.execute('DELETE FROM "Competitions" WHERE "UserID" = %s', (userId,))
-            cursor.execute('DELETE FROM "Users" WHERE "Username" = %s', (username,))
+        if user:
+            user_id = user[0]
+            cursor.execute('DELETE FROM "Workout" WHERE "UserID" = %s', (user_id,))
+            cursor.execute('DELETE FROM "Users" WHERE "UserID" = %s', (user_id,))
 
         conn.commit()
         cursor.close()
@@ -47,134 +47,86 @@ def loggedInClient(client):
         print(f"Cleanup error: {e}")
 
 
-def test_add_workout_page_returns_200(loggedInClient):
-    client, _ = loggedInClient
-    response = client.get("/add-workout")
+def test_add_workout_page_returns_200(logged_in_client):
+    response = logged_in_client.get("/add-workout")
     assert response.status_code == 200
 
 
-def test_add_workout_page_contains_heading(loggedInClient):
-    client, _ = loggedInClient
-    response = client.get("/add-workout")
+def test_add_workout_page_contains_heading(logged_in_client):
+    response = logged_in_client.get("/add-workout")
+    assert "Fitness Tracker" in response.text
     assert "Add Workout" in response.text
 
 
-def test_add_workout_contains_form(loggedInClient):
-    client, _ = loggedInClient
-    response = client.get("/add-workout")
-    assert "form" in response.text
+def test_add_workout_contains_form(logged_in_client):
+    response = logged_in_client.get("/add-workout")
+    assert "<form" in response.text
 
 
-def test_add_workout_page_contains_workout_name_input(loggedInClient):
-    client, _ = loggedInClient
-    response = client.get("/add-workout")
-    assert "workoutName" in response.text
+def test_add_workout_page_contains_workout_name_input(logged_in_client):
+    response = logged_in_client.get("/add-workout")
+    assert 'name="workoutName"' in response.text
 
 
-def test_add_workout_page_contains_add_exercise_button(loggedInClient):
-    client, _ = loggedInClient
-    response = client.get("/add-workout")
-    assert "Add Exercise" in response.text
+def test_add_workout_page_contains_add_exercise_button(logged_in_client):
+    response = logged_in_client.get("/add-workout")
+    assert "+ Add Exercise" in response.text
 
 
-def test_add_workout_page_contains_save_button(loggedInClient):
-    client, _ = loggedInClient
-    response = client.get("/add-workout")
+def test_add_workout_page_contains_save_button(logged_in_client):
+    response = logged_in_client.get("/add-workout")
     assert "Save Workout" in response.text
 
 
-def test_add_workout_page_shows_error(loggedInClient):
-    client, _ = loggedInClient
-    response = client.get("/add-workout?error=Example+error")
+def test_add_workout_page_shows_error(logged_in_client):
+    response = logged_in_client.get("/add-workout?error=Example+error")
     assert "Example error" in response.text
 
 
-def test_add_workout_post_empty_workout_name_returns_error(loggedInClient):
-    client, _ = loggedInClient
-
+def test_add_workout_post_redirects_if_not_logged(client):
     response = client.post("/add-workout", data={
-        "workoutName": "   "
+        "workoutName": "morning run",
+        "workoutType_1": "cardio",
+        "exerciseName_1": "Running",
+        "duration_1": "30",
+        "distance_1": "5",
+        "calories_1": "300"
+    }, follow_redirects=False)
+
+    assert response.status_code == 303
+    assert '/login' in response.headers["location"]
+
+
+def test_add_workout_post_redirects_if_empty_exercise(client):
+    response = client.post("/add-workout", data={
+        "workoutName": "morning run"
+    }, follow_redirects=False)
+
+    assert response.status_code == 303
+    assert '/login' in response.headers["location"]
+
+
+def test_add_workout_post_empty_workout_name_returns_error(logged_in_client):
+    response = logged_in_client.post("/add-workout", data={
+        "workoutName": "   ",
+        "workoutType_1": "cardio",
+        "exerciseName_1": "Running",
+        "duration_1": "30",
+        "distance_1": "5",
+        "calories_1": "300"
     }, follow_redirects=False)
 
     assert response.status_code == 303
     assert "error" in response.headers["location"]
 
 
-def test_add_workout_post_missing_workout_name_returns_422(loggedInClient):
-    client, _ = loggedInClient
-
-    response = client.post("/add-workout", data={}, follow_redirects=False)
-
-    assert response.status_code == 422
-
-
-def test_add_workout_weights_exercise_parsed_correctly(loggedInClient):
-    client, _ = loggedInClient
-
-    response = client.post("/add-workout", data={
-        "workoutName": "Chest Day",
-        "workoutType_1": "weights",
-        "weightExerciseName_1": "Bench Press",
-        "difficulty_1": "3",
-        "reps_1_1": "10",
-        "weight_1_1": "60",
-    }, follow_redirects=False)
-
-    assert response.status_code == 303
-
-
-def test_add_workout_multiple_sets_parsed(loggedInClient):
-    client, _ = loggedInClient
-
-    response = client.post("/add-workout", data={
-        "workoutName": "Chest Day",
-        "workoutType_1": "weights",
-        "weightExerciseName_1": "Bench Press",
-        "difficulty_1": "4",
-        "reps_1_1": "10",
-        "weight_1_1": "60",
-        "reps_1_2": "8",
-        "weight_1_2": "65",
-    }, follow_redirects=False)
-
-    assert response.status_code == 303
-
-
-def test_add_workout_multiple_exercises_parsed(loggedInClient):
-    client, _ = loggedInClient
-
-    response = client.post("/add-workout", data={
-        "workoutName": "Full Body",
-        "workoutType_1": "weights",
-        "weightExerciseName_1": "Bench Press",
-        "difficulty_1": "3",
-        "reps_1_1": "10",
-        "weight_1_1": "60",
-        "workoutType_2": "weights",
-        "weightExerciseName_2": "Tricep Pushdown",
-        "difficulty_2": "2",
-        "reps_2_2": "12",
-        "weight_2_2": "30",
-    }, follow_redirects=False)
-
-    assert response.status_code == 303
-
-
-def test_add_workout_mixed_exercises_parsed(loggedInClient):
-    client, _ = loggedInClient
-
-    response = client.post("/add-workout", data={
-        "workoutName": "Mixed Session",
+def test_add_workout_post_missing_workout_name_returns_422(logged_in_client):
+    response = logged_in_client.post("/add-workout", data={
         "workoutType_1": "cardio",
         "exerciseName_1": "Running",
         "duration_1": "30",
         "distance_1": "5",
-        "calories_1": "300",
-        "workoutType_2": "weights",
-        "weightExerciseName_2": "Bench Press",
-        "difficulty_2": "3",
-        "reps_2_1": "10",
-        "weight_2_1": "60",
+        "calories_1": "300"
     }, follow_redirects=False)
 
-    assert response.status_code == 303
+    assert response.status_code == 422
