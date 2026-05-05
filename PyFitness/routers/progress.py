@@ -17,15 +17,25 @@ async def progress(request: Request):
     this_week = summary["this_week"]
     this_month = summary["this_month"]
     
-    weeks = sorted(set(str(row[0].strftime("%d %b")) for row in type_data))
+    
+    weeks = []
     cardio_map = {}
     weights_map = {}
+
     for row in type_data:
         week_label = str(row[0].strftime("%d %b"))
-    if row[1] == "cardio":
-        cardio_map[week_label] = row[2]
-    elif row[1] == "weights":
-        weights_map[week_label] = row[2]
+        if week_label not in weeks:
+            weeks.append(week_label)
+        if row[1] == "cardio":
+            cardio_map[week_label] = row[2]
+        elif row[1] == "weights":
+            weights_map[week_label] = row[2]
+
+    cardio_data = [cardio_map.get(w, 0) for w in weeks]
+    weights_data = [weights_map.get(w, 0) for w in weeks]
+    labels_json = json.dumps(weeks)
+    cardio_json = json.dumps(cardio_data)
+    weights_json = json.dumps(weights_data)
     
     cardio_data = [cardio_map.get(w, 0) for w in weeks]
     weights_data = [weights_map.get(w, 0) for w in weeks]
@@ -49,6 +59,7 @@ async def progress(request: Request):
                         <a href="/home">Home</a>
                         <a href="/add-workout">Add Workout</a>
                         <a href="/programmes">Programmes</a>
+                        <a href="/competitions">Competitions</a>
                         <a href="/progress" class="active">Progress</a>
                         <a href="/settings">Settings</a>
                         <a href="/logout" class="nav-btn">Logout</a>
@@ -76,6 +87,7 @@ async def progress(request: Request):
                             <span class="legend-cardio">Cardio</span>
                             <span class="legend-weights">Weights</span>
                         </div>
+                        {"<p>No workouts logged yet - add some workouts to see your progress!</p>" if len(type_data) == 0 else ""}
                         <canvas id="progressChart"></canvas>
                     </div>
                 </div>

@@ -112,3 +112,43 @@
         height: 140px;
     }
 }
+
+.faq-section {
+    margin-bottom: 40px;
+}
+
+.faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--toasted-almond);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.faq-question {
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 16px 20px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-question:hover {
+    background: var(--surface-raised);
+}
+
+.faq-answer {
+    display: none;
+    padding: 0 20px 16px 20px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
