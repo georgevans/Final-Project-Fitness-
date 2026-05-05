@@ -22,8 +22,11 @@ async def add_workout(error: str = None):
                     <a href="/home" class="navbar-brand">Fitness Tracker</a>
                     <div class="navbar-links">
                         <a href="/home">Home</a>
-                        <a href="/add-workout">Add Workout</a>
+                        <a href="/add-workout" class="active">Add Workout</a>
                         <a href="/programmes">Programmes</a>
+                        <a href="/competitions">Competitions</a>
+                        <a href="/progress">Progress</a>
+                        <a href="/guides">Help</a>
                         <a href="/settings">Settings</a>
                         <a href="/logout" class="nav-btn">Logout</a>
                     </div>
@@ -47,6 +50,7 @@ async def add_workout(error: str = None):
 
                 <script>
                     let exerciseCount = 0;
+                    let cardioCount = {{'Run': 0, 'Cycle': 0, 'Swim': 0, 'Weights': 0}};
 
                     function addExercise() {{
                         exerciseCount++;
@@ -56,7 +60,7 @@ async def add_workout(error: str = None):
                         exercise.id = "exercise_" + exerciseCount;
                         exercise.style = "border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;";
                         exercise.innerHTML = `
-                            <h3>Exercise ${{exerciseCount}}</h3>
+                            <h3 id="exerciseTitle_${{exerciseCount}}">Exercise ${{exerciseCount}}</h3>
                             <label>Type</label><br>
                             <select name="workoutType_${{exerciseCount}}" onchange="handleTypeChange(this.value, ${{exerciseCount}})">
                                 <option value="">Select type</option>
@@ -66,7 +70,7 @@ async def add_workout(error: str = None):
 
                             <div id="cardioFields_${{exerciseCount}}" style="display:none">
                                 <label>Cardio Type</label><br>
-                                <select name="cardioType_${{exerciseCount}}" required>
+                                <select name="cardioType_${{exerciseCount}}" onchange="handleCardioTypeChange(this.value, ${{exerciseCount}})" required>
                                     <option value="">Select cardio type</option>
                                     <option value="Run">Run</option>
                                     <option value="Cycle">Cycle</option>
@@ -113,6 +117,7 @@ async def add_workout(error: str = None):
                         if (value === "weights") {{
                             document.getElementById("weightFields_" + id).style.display = "block";
                             document.getElementById("cardioFields_" + id).style.display = "none";
+                            document.getElementById("exerciseTitle_" + id).textContent = "Weights " + (++cardioCount['Weights']);
                         }} else if (value === "cardio") {{
                             document.getElementById("cardioFields_" + id).style.display = "block";
                             document.getElementById("weightFields_" + id).style.display = "none";
@@ -120,6 +125,10 @@ async def add_workout(error: str = None):
                             document.getElementById("cardioFields_" + id).style.display = "none";
                             document.getElementById("weightFields_" + id).style.display = "none";
                         }}
+                    }}
+
+                    function handleCardioTypeChange(cardioType, id) {{
+                        document.getElementById("exerciseTitle_" + id).textContent = cardioType + " " + (++cardioCount[cardioType]);
                     }}
 
                     function addSet(exerciseId) {{

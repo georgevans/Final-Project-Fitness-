@@ -138,10 +138,10 @@ async def competitions(request: Request, error: str = None):
                 </tr>
             """
 
-        # Fetch cardio pace data with sequential exercise count
+        # Fetch cardio pace data with exercise count per cardio type
         cursor.execute(
             '''
-            SELECT ROW_NUMBER() OVER (ORDER BY c."CardioDate" ASC) as exercise_num, c."CardioType", c."Distance", c."Duration"
+            SELECT ROW_NUMBER() OVER (PARTITION BY c."CardioType" ORDER BY c."CardioDate" ASC) as exercise_num, c."CardioType", c."Distance", c."Duration"
             FROM "Cardio" c
             JOIN "Exercise" e ON c."ExerciseID" = e."ExerciseID"
             JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
@@ -237,9 +237,12 @@ async def competitions(request: Request, error: str = None):
                         <div class="navbar-links">
                             <a href="/home">Home</a>
                             <a href="/add-workout">Add Workout</a>
-                            <a href="/competitions">Competitions</a>
+                            <a href="/programmes">Programmes</a>
+                            <a href="/competitions" class="active">Competitions</a>
+                            <a href="/progress">Progress</a>
+                            <a href="/guides">Help</a>
                             <a href="/settings">Settings</a>
-                            <a href="/logout">Logout</a>
+                            <a href="/logout" class="nav-btn">Logout</a>
                         </div>
                     </nav>
 

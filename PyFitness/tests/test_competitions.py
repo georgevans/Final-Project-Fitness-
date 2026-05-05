@@ -33,15 +33,18 @@ def loggedInClient(client):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        # First get the UserID to delete their competitions
+        # Get the UserID
         cursor.execute('SELECT "UserID" FROM "Users" WHERE "Username" = %s', (username,))
         user_result = cursor.fetchone()
         if user_result:
             userId = user_result[0]
-            # Delete competitions first (due to foreign key constraints)
+            # Delete in order of foreign key dependencies
+            cursor.execute('DELETE FROM "Cardio" WHERE "ExerciseID" IN (SELECT "ExerciseID" FROM "Exercise" WHERE "WorkoutID" IN (SELECT "WorkoutID" FROM "Workout" WHERE "UserID" = %s))', (userId,))
+            cursor.execute('DELETE FROM "ExerciseSet" WHERE "ExerciseID" IN (SELECT "ExerciseID" FROM "Exercise" WHERE "WorkoutID" IN (SELECT "WorkoutID" FROM "Workout" WHERE "UserID" = %s))', (userId,))
+            cursor.execute('DELETE FROM "Exercise" WHERE "WorkoutID" IN (SELECT "WorkoutID" FROM "Workout" WHERE "UserID" = %s)', (userId,))
+            cursor.execute('DELETE FROM "Workout" WHERE "UserID" = %s', (userId,))
             cursor.execute('DELETE FROM "Competitions" WHERE "UserID" = %s', (userId,))
-            # Then delete the user
-            cursor.execute('DELETE FROM "Users" WHERE "Username" = %s', (username,))
+            cursor.execute('DELETE FROM "Users" WHERE "UserID" = %s', (userId,))
         conn.commit()
         cursor.close()
         conn.close()
@@ -299,25 +302,77 @@ def test_personal_bests_shows_best_time(loggedInClient):
     cursor = conn.cursor()
     cursor.execute('SELECT "UserID" FROM "Users" WHERE "Username" = %s', (username,))
     userId = cursor.fetchone()[0]
-    
+
     # Insert completed competitions
     cursor.execute('''
         INSERT INTO "Competitions" ("Race", "CompetitionType", "Distance", "Date", "Description", "UserID", "Completed", "ResultTime")
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     ''', ("5K Run", "Run", 5, "2026-04-01", "", userId, True, 23))
-    
+
     cursor.execute('''
         INSERT INTO "Competitions" ("Race", "CompetitionType", "Distance", "Date", "Description", "UserID", "Completed", "ResultTime")
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     ''', ("10K Run", "Run", 10, "2026-04-15", "", userId, True, 45.0))
-    
+
     conn.commit()
     cursor.close()
     conn.close()
-    
+
     response = client.get("/competitions")
     assert "PERSONAL BEST" in response.text
     assert "TIME(MINS)" in response.text
     assert "5K Run" in response.text
     assert "23" in response.text
     assert "45" in response.text
+
+# Tests for pace chart on competitions page
+
+def test_competitions_page_contains_pace_chart(loggedInClient):
+    client, _ = loggedInClient
+    response = client.get("/competitions")
+    assert "Cardio Pace Trends" in response.text
+
+def test_competitions_page_contains_chart_js_library(loggedInClient):
+    client, _ = loggedInClient
+    response = client.get("/competitions")
+    assert "chart.js" in response.text.lower()
+
+@pytest.mark.parametrize("cardio_type, exercise_name, distance, day", [
+    ("Run", "Running", "5", "2026-05-01"),
+    ("Cycle", "Cycling", "20", "2026-05-02"),
+    ("Swim", "Swimming", "2", "2026-05-03"),
+])
+def test_pace_chart_displays_cardio_data(loggedInClient, cardio_type, exercise_name, distance, day):
+    client, username = loggedInClient
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT "UserID" FROM "Users" WHERE "Username" = %s', (username,))
+    userId = cursor.fetchone()[0]
+
+    # Create workout
+    cursor.execute(
+        'INSERT INTO "Workout" ("UserID", "WorkoutDate", "Name", "WorkoutTime") VALUES (%s, %s, %s, %s) RETURNING "WorkoutID"',
+        (userId, day, f"{cardio_type} Session", "10:00:00")
+    )
+    workoutId = cursor.fetchone()[0]
+
+    # Create exercise
+    cursor.execute(
+        'INSERT INTO "Exercise" ("WorkoutID", "Name", "Type") VALUES (%s, %s, %s) RETURNING "ExerciseID"',
+        (workoutId, exercise_name, "cardio")
+    )
+    exerciseId = cursor.fetchone()[0]
+
+    # Insert cardio data
+    cursor.execute(
+        'INSERT INTO "Cardio" ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories", "CardioType", "CardioDate") VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
+        (exerciseId, 45, distance, "minutes", "km", 400, cardio_type, day)
+    )
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    response = client.get("/competitions")
+    assert response.status_code == 200
+    assert cardio_type in response.text

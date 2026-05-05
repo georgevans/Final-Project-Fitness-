@@ -1,3 +1,4 @@
+import pytest
 from fastapi.testclient import TestClient
 from main import app
 
@@ -139,18 +140,27 @@ def test_add_workout_mixed_exercises_parsed():
     assert response.status_code == 303
     assert "error" in response.headers["location"]
 
-    def test_signup_post_fails_if_email_already_exists(monkeypatch):
-        def mock_get_user_by_email(email):
-            return (1, "testuser", email)
+# ====== CardioType tests ==================
+def test_add_workout_page_contains_cardio_type_dropdown():
+    response = client.get("/add-workout")
+    assert "Run" in response.text
+    assert "Cycle" in response.text
+    assert "Swim" in response.text
 
-        monkeypatch.setattr("routers.signup.get_user_by_email", mock_get_user_by_email)
-
-        response = client.post("/signup", data={
-            "username": "testuser",
-            "email": "email@testemail.com",
-            "password": "ValidPassword91!",
-            "confirmPassword": "ValidPassword91!"
-        }, follow_redirects=False)
-
-        assert response.status_code == 303
-        assert "Email+already+in+use" in response.headers["location"]
+@pytest.mark.parametrize("cardio_type, exercise_name, distance, duration, calories", [
+    ("Run", "Running", "5", "30", "300"),
+    ("Cycle", "Cycling", "15", "45", "500"),
+    ("Swim", "Swimming", "2", "60", "400"),
+])
+def test_add_workout_cardio_type_parsed(cardio_type, exercise_name, distance, duration, calories):
+    response = client.post("/add-workout", data={
+        "workoutName": f"{cardio_type} Workout",
+        "workoutType_1": "cardio",
+        "cardioType_1": cardio_type,
+        "exerciseName_1": exercise_name,
+        "duration_1": duration,
+        "distance_1": distance,
+        "calories_1": calories
+    }, follow_redirects=False)
+    assert response.status_code == 303
+    assert "error" in response.headers["location"]
