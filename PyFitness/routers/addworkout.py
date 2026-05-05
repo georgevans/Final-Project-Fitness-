@@ -65,6 +65,14 @@ async def add_workout(error: str = None):
                             </select><br><br>
 
                             <div id="cardioFields_${{exerciseCount}}" style="display:none">
+                                <label>Cardio Type</label><br>
+                                <select name="cardioType_${{exerciseCount}}" required>
+                                    <option value="">Select cardio type</option>
+                                    <option value="Run">Run</option>
+                                    <option value="Cycle">Cycle</option>
+                                    <option value="Swim">Swim</option>
+                                </select><br><br>
+
                                 <label>Exercise Name</label><br>
                                 <input type="text" name="exerciseName_${{exerciseCount}}" placeholder="e.g. Running"><br><br>
 
@@ -157,6 +165,7 @@ async def add_workout_post(
         if exerciseType == "cardio":
             exercises.append({
                 "type": "cardio",
+                "cardioType": formData.get(f"cardioType_{i}"),
                 "name": formData.get(f"exerciseName_{i}"),
                 "duration": formData.get(f"duration_{i}"),
                 "distance": formData.get(f"distance_{i}"),
@@ -183,6 +192,7 @@ async def add_workout_post(
     if len(exercises) <= 0:
         return RedirectResponse(url="/add-workout?error=Must+add+at+least+one+exercise+to+a+workout", status_code=303)
 
+    
     if "userId" not in request.session:
         return RedirectResponse(url="/add-workout?error=Please+log+in", status_code=303)
 
@@ -215,8 +225,8 @@ async def add_workout_post(
 
             if exercise["type"] == "cardio":
                 cursor.execute(
-                    'INSERT INTO "Cardio" ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories") VALUES (%s, %s, %s, %s, %s, %s)',
-                    (exerciseId, exercise["duration"], exercise["distance"], "minutes", "km", exercise["calories"])
+                    'INSERT INTO "Cardio" ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories", "CardioType", "CardioDate") VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
+                    (exerciseId, exercise["duration"], exercise["distance"], "minutes", "km", exercise["calories"], exercise["cardioType"], date)
                 )
             elif exercise["type"] == "weights":
                 cursor.execute(
