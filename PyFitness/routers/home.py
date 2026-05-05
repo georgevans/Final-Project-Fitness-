@@ -165,7 +165,10 @@ async def workout_details(workout_id: int, request: Request):
 
     userId = request.session["userId"]
 
-    distance_unit = "km"
+    settings = get_user_settings(userId)
+
+    weight_unit = settings[0] if settings else "kg"
+    distance_unit = settings[1] if settings else "km"
 
     conn = get_connection()
     cur = conn.cursor()
