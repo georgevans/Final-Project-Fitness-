@@ -1,5 +1,7 @@
 import pytest
+import uuid
 from fastapi.testclient import TestClient
+from database.db import get_connection
 from main import app
 
 @pytest.fixture
@@ -8,12 +10,31 @@ def client():
 
 @pytest.fixture
 def loggedInClient(client):
-    response = client.post("/login", data={
-        "username": "tester",
-        "password": "Password123."
+    username = f"testuser_{uuid.uuid4().hex[:8]}"
+    email = f"{username}@example.com"
+    password = "Password123."
+
+    response = client.post("/signup", data={
+        "username": username,
+        "email": email,
+        "password": password,
+        "confirmPassword": password
     }, follow_redirects=False)
+
+    assert response.headers["location"] == "/home"
     assert response.status_code == 303
-    return client
+
+    yield client
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM "Users" WHERE "Username" = %s', (username,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Cleanup error: {e}")
 
 def test_home_redirects_if_not_logged(client):
     response = client.get("/home", follow_redirects=False)
@@ -42,3 +63,15 @@ def test_home_page_contains_sort_dropdown(loggedInClient):
 def test_home_page_contains_todays_training(loggedInClient):
     response = loggedInClient.get("/home")
     assert "Today" in response.text
+
+def test_home_page_contains_navbar(loggedInClient):
+    response = loggedInClient.get("/home")
+    assert "navbar" in response.text
+
+def test_home_page_contains_add_workout_link(loggedInClient):
+    response = loggedInClient.get("/home")
+    assert "/add-workout" in response.text
+
+def test_home_page_contains_progress_link(loggedInClient):
+    response = loggedInClient.get("/home")
+    assert "/progress" in response.text
