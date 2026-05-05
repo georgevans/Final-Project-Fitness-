@@ -91,7 +91,7 @@ async def login_post(
 
     userId = request.session["userId"]
 
-    if get_user_settings(userId) == None:
+    if get_user_settings(userId) is None:
         set_default_settings(userId)
 
     return RedirectResponse(url="/home", status_code=303)
