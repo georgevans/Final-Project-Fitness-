@@ -72,7 +72,7 @@ async def add_workout(request: Request, error: str = None):
                                 <label>Exercise Name</label><br>
                                 <input type="text" name="exerciseName_${{exerciseCount}}" placeholder="e.g. Running"><br><br>
 
-                                <label>Duration (m)</label><br>
+                                <label>Duration (minutes)</label><br>
                                 <input type="number" name="duration_${{exerciseCount}}" placeholder="Enter duration"><br><br>
 
                                 <label>Distance {settings[1]}</label><br>
@@ -154,7 +154,7 @@ async def add_workout_post(
     settings = get_user_settings(userId)
 
     weight_unit = settings[0] if settings else "kg"
-    distnace_unit = settings[1] if settings else "km"
+    distance_unit = settings[1] if settings else "km"
 
     formData = await request.form()
     settings = get_user_settings(userId)
@@ -225,7 +225,7 @@ async def add_workout_post(
             if exercise["type"] == "cardio":
                 cursor.execute(
                     'INSERT INTO "Cardio" ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories") VALUES (%s, %s, %s, %s, %s, %s)',
-                    (exerciseId, exercise["duration"], exercise["distance"], "minutes", settings[1], exercise["calories"])
+                    (exerciseId, exercise["duration"], exercise["distance"], "m", distance_unit, exercise["calories"])
                 )
             elif exercise["type"] == "weights":
                 cursor.execute(
