@@ -110,23 +110,20 @@ def test_update_settings_success_redirect(loggedInClient):
     assert "/settings?saved=1" in response.headers["location"]
 
 
-def test_update_settings_persists_to_db(loggedInClient):
-    # update settings
-    loggedInClient.post("/update-settings", data={
+def test_update_settings_persists_to_db(logged_in_client):
+    client, user_id = logged_in_client
+
+    client.post("/update-settings", data={
         "weight_unit": "lb",
         "distance_unit": "mi"
     })
 
-    # get user from DB
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute('SELECT "UserID" FROM "Users" ORDER BY "UserID" DESC LIMIT 1')
-    userId = cursor.fetchone()[0]
-
     cursor.execute(
-        'SELECT weightunit, distanceunit FROM "Settings" WHERE "UserID" = %s',
-        (userId,)
+        'SELECT "weightunit", "distanceunit" FROM "Settings" WHERE "UserID" = %s',
+        (user_id,)
     )
     result = cursor.fetchone()
 
