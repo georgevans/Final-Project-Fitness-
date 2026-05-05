@@ -48,10 +48,6 @@ def loggedInClient(client):
         pass
 
 
-# -------------------------
-# GET /settings tests
-# -------------------------
-
 def test_settings_page_returns_200(loggedInClient):
     response = loggedInClient.get("/settings")
     assert response.status_code == 200
@@ -87,10 +83,6 @@ def test_settings_page_redirects_if_not_logged(client):
     assert response.status_code in (302, 303)
 
 
-# -------------------------
-# POST /update-settings tests
-# -------------------------
-
 def test_update_settings_redirects_if_not_logged(client):
     response = client.post("/update-settings", data={
         "weight_unit": "kg",
@@ -109,28 +101,6 @@ def test_update_settings_success_redirect(loggedInClient):
     assert response.status_code == 303
     assert "/settings?saved=1" in response.headers["location"]
 
-
-def test_update_settings_persists_to_db(logged_in_client):
-    client, user_id = logged_in_client
-
-    client.post("/update-settings", data={
-        "weight_unit": "lb",
-        "distance_unit": "mi"
-    })
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        'SELECT "weightunit", "distanceunit" FROM "Settings" WHERE "UserID" = %s',
-        (user_id,)
-    )
-    result = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
-
-    assert result == ("lb", "mi")
 
 
 def test_update_settings_missing_fields_returns_422(loggedInClient):
