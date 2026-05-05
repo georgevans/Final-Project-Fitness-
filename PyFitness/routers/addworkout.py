@@ -1,15 +1,18 @@
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from database.db import get_connection
+from database.db import get_connection, get_user_settings
 import datetime
 
 
 router = APIRouter()
 
 @router.get("/add-workout", response_class=HTMLResponse)
-async def add_workout(error: str = None):
+async def add_workout(request: Request, error: str = None):
     error_html = f'<p style="color:red;">{error}</p>' if error else ""
 
+    userId = request.session["userId"]
+    settings = get_user_settings(userId)
+    
     return f"""
         <html>
             <head>
@@ -68,10 +71,10 @@ async def add_workout(error: str = None):
                                 <label>Exercise Name</label><br>
                                 <input type="text" name="exerciseName_${{exerciseCount}}" placeholder="e.g. Running"><br><br>
 
-                                <label>Duration (minutes)</label><br>
+                                <label>Duration (m)</label><br>
                                 <input type="number" name="duration_${{exerciseCount}}" placeholder="Enter duration"><br><br>
 
-                                <label>Distance (km)</label><br>
+                                <label>Distance {settings[1]}</label><br>
                                 <input type="number" name="distance_${{exerciseCount}}" placeholder="Enter distance" step="0.1"><br><br>
 
                                 <label>Calories Burned</label><br>
@@ -125,7 +128,7 @@ async def add_workout(error: str = None):
                             <strong>Set ${{setCount}}</strong><br><br>
                             <label>Reps</label><br>
                             <input type="number" name="reps_${{exerciseId}}_${{setCount}}" placeholder="Enter reps"><br><br>
-                            <label>Weight (kg)</label><br>
+                            <label>Weight {settings[0]}</label><br>
                             <input type="number" name="weight_${{exerciseId}}_${{setCount}}" placeholder="Enter weight" step="0.5"><br><br>
                             <button type="button" onclick="removeSet(${{exerciseId}}, ${{setCount}})">Remove Set</button>
                         `;
@@ -148,7 +151,7 @@ async def add_workout_post(
 ):
     
     formData = await request.form()
-
+    settings = get_user_settings(userId)
     exercises = []
     i = 1
     while f"workoutType_{i}" in formData:
@@ -216,7 +219,7 @@ async def add_workout_post(
             if exercise["type"] == "cardio":
                 cursor.execute(
                     'INSERT INTO "Cardio" ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories") VALUES (%s, %s, %s, %s, %s, %s)',
-                    (exerciseId, exercise["duration"], exercise["distance"], "minutes", "km", exercise["calories"])
+                    (exerciseId, exercise["duration"], exercise["distance"], "minutes", settings[1], exercise["calories"])
                 )
             elif exercise["type"] == "weights":
                 cursor.execute(
