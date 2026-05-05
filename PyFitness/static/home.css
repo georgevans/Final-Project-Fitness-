@@ -100,6 +100,7 @@
     transform: translateY(-4px);
     box-shadow: 0 14px 26px rgba(0, 0, 0, 0.4);
     border-color: var(--toasted-almond);
+    cursor: pointer;
 }
 
 .home-wrapper h2 {
@@ -126,4 +127,33 @@
 
 .search-bar select {
     width: 200px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+.modal-content {
+    background: #2a2224;
+    padding: 25px;
+    border-radius: 12px;
+    width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    color: #f0e8e0;
+}
+
+.close {
+    float: right;
+    cursor: pointer;
+    font-size: 20px;
 }

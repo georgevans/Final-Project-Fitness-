@@ -118,3 +118,29 @@ def get_workout_type_summary(userId: int):
     except Exception as e:
         print(f"Database error: {e}")
         return []
+    
+def get_user_settings(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            '''
+            SELECT weightunit, distanceunit
+            FROM "Settings"
+            WHERE "UserID" = %s
+            ''',
+            (userId,)
+        )
+
+        settings = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        return settings
+
+    except Exception as e:
+        print(f"Database error (get_user_settings): {e}")
+        return None
+    
