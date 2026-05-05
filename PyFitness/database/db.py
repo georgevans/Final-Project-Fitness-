@@ -138,7 +138,11 @@ def get_user_settings(userId: int):
         cur.close()
         conn.close()
 
-        return settings
+        if settings:
+            return settings
+        
+        return ("kg", "km")
+
 
     except Exception as e:
         print(f"Database error (get_user_settings): {e}")

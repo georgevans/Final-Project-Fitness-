@@ -161,6 +161,9 @@ async def add_workout_post(
 
     settings = get_user_settings(userId)
 
+    if not settings:
+        settings = ("kg", "km")
+
     weight_unit = settings[0] if settings else "kg"
     distance_unit = settings[1] if settings else "km"
 
