@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS "Workout" (
   "WorkoutID" SERIAL PRIMARY KEY,
   "UserID" INT NOT NULL REFERENCES "Users"("UserID"),
   "WorkoutDate" DATE,
-  "Name" VARCHAR(100)
+  "Name" VARCHAR(100),
+  "WorkoutTime" TIME
 );
 ''')
 
