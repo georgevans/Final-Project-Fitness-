@@ -67,6 +67,9 @@ async def programmes(request: Request, error: str = None, success: str = None):
         conn.close()
     except Exception as e:
         print(f"Database error: {e}")
+        conn.rollback()
+        cursor.close()
+        conn.close()
         programmes = []
 
     programme_html = ""
@@ -246,6 +249,9 @@ async def add_programme(
         conn.close()
     except Exception as e:
         print(f"Database error: {e}")
+        conn.rollback()
+        cursor.close()
+        conn.close()
         return RedirectResponse(url="/programmes?error=Failed+to+create+programme", status_code=303)
 
     return RedirectResponse(url="/programmes?success=Programme+created!", status_code=303)
@@ -270,6 +276,9 @@ async def delete_programme(request: Request, programmeId: int = Form(...)):
         conn.close()
     except Exception as e:
         print(f"Database error: {e}")
+        conn.rollback()
+        cursor.close()
+        conn.close()
         return RedirectResponse(url="/programmes?error=Failed+to+delete+programme", status_code=303)
 
     return RedirectResponse(url="/programmes?success=Programme+deleted", status_code=303)
@@ -301,6 +310,9 @@ async def view_programme(request: Request, programmeId: int):
         conn.close()
     except Exception as e:
         print(f"Database error: {e}")
+        conn.rollback()
+        cursor.close()
+        conn.close()
         return RedirectResponse(url="/programmes?error=Failed+to+load+programme", status_code=303)
 
     days_html = ""
@@ -378,5 +390,8 @@ async def complete_day(
         conn.close()
     except Exception as e:
         print(f"Database error: {e}")
+        conn.rollback()
+        cursor.close()
+        conn.close()
 
     return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)
