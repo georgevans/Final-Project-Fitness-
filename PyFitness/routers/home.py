@@ -79,13 +79,13 @@ async def home(request: Request):
                     <a href="/home" class="navbar-brand">Fitness Tracker</a>
                     <div class="navbar-links">
                         <a href="/home" class="active">Home</a>
-                        <a href="/add-workout">Add Workout</a>
                         <a href="/programmes">Programmes</a>
                         <a href="/competitions">Competitions</a>
                         <a href="/progress">Progress</a>
                         <a href="/guides">Help</a>
                         <a href="/settings">Settings</a>
-                        <a href="/logout" class="nav-btn">Logout</a>
+                        <a href="/add-workout" class="add-workout">Add Workout</a>
+                        <a href="/logout" class="logout">Logout</a>
                     </div>
                 </nav>
 

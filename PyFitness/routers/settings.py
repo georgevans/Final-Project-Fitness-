@@ -33,8 +33,8 @@ async def settings(request: Request):
                     <a href="/home" class="navbar-brand">Fitness Tracker</a>
                     <div class="navbar-links">
                         <a href="/home" class="active">Home</a>
-                        <a href="/add-workout">Add Workout</a>
-                        <a href="/logout" class="nav-btn">Logout</a>
+                        <a href="/add-workout" class="add-workout">Add Workout</a>
+                        <a href="/logout" class="logout">Logout</a>
                     </div>
                 </nav>
                 <div class="form-page">
