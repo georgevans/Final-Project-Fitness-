@@ -25,7 +25,7 @@ async def signup(error: str = None):
             </script>
                 <div class="signup-wrapper">
                     <div class="signup-card">
-                        <p class="brand">Fitness Tracker</p>
+                        <p class="brand">FiTrackr</p>
                         <h1>Sign <span>Up</span></h1>
                         <div class="accent-line"></div>
                         {error_html}

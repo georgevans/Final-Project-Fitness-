@@ -50,7 +50,7 @@ async def progress(request: Request):
     return f"""
         <html>
             <head>
-                <title>Fitness Tracker - Progress</title>
+                <title>FiTrackr - Progress</title>
                 <link rel="stylesheet" href="/static/main.css">
                 <link rel="stylesheet" href="/static/progress.css">
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -62,7 +62,7 @@ async def progress(request: Request):
                 }}
             </script>
                 <nav class="navbar">
-                    <a href="/home" class="navbar-brand">Fitness Tracker</a>
+                    <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
                         <a href="/home">Home</a>
                         <a href="/programmes">Programmes</a>

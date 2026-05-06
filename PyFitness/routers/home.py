@@ -65,7 +65,7 @@ async def home(request: Request):
     return f"""
         <html>
             <head>
-                <title>Fitness Tracker - Home</title>
+                <title>FiTrackr - Home</title>
                 <link rel="stylesheet" href="/static/main.css">
                 <link rel="stylesheet" href="/static/home.css">
             </head>
@@ -76,7 +76,7 @@ async def home(request: Request):
                 }}
             </script>
                 <nav class="navbar">
-                    <a href="/home" class="navbar-brand">Fitness Tracker</a>
+                    <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
                         <a href="/home" class="active">Home</a>
                         <a href="/programmes">Programmes</a>

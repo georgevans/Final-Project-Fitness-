@@ -119,7 +119,7 @@ async def programmes(request: Request, error: str = None, success: str = None):
                 }}
             </script>
                 <nav class="navbar">
-                    <a href="/home" class="navbar-brand">Fitness Tracker</a>
+                    <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
                         <a href="/home">Home</a>
                         <a href="/programmes" class="active">Programmes</a>
@@ -349,7 +349,7 @@ async def view_programme(request: Request, programmeId: int):
             </head>
             <body>
                 <nav class="navbar">
-                    <a href="/home" class="navbar-brand">Fitness Tracker</a>
+                    <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
                         <a href="/home">Home</a>
                         <a href="/add-workout">Add Workout</a>

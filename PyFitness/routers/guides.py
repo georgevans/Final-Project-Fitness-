@@ -104,7 +104,7 @@ async def guides(request: Request):
     return f"""
     <html>
         <head>
-            <title>Fitness Tracker - Guides</title>
+            <title>FiTrackr - Guides</title>
             <link rel="stylesheet" href="/static/main.css">
             <link rel="stylesheet" href="/static/guides.css">
         </head>
@@ -116,7 +116,7 @@ async def guides(request: Request):
             </script>
 
             <nav class="navbar">
-                <a href="/home" class="navbar-brand">Fitness Tracker</a>
+                <a href="/home" class="navbar-brand">FiTrackr</a>
                 <div class="navbar-links">
                     <a href="/home">Home</a>
                     <a href="/programmes">Programmes</a>

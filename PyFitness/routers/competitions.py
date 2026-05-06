@@ -241,7 +241,7 @@ async def competitions(request: Request, error: str = None):
                 }}
             </script>
                     <nav class="navbar">
-                        <a href="/home" class="navbar-brand">Fitness Tracker</a>
+                        <a href="/home" class="navbar-brand">FiTrackr</a>
                         <div class="navbar-links">
                             <a href="/home">Home</a>
                             <a href="/programmes">Programmes</a>
