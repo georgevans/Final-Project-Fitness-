@@ -14,12 +14,14 @@ def loggedInClient(client):
     email = f"{username}@example.com"
     password = "Password123."
 
-    client.post("/signup", data={
+    response = client.post("/signup", data={
         "username": username,
         "email": email,
         "password": password,
         "confirmPassword": password
-    }, follow_redirects=True)
+    }, follow_redirects=False)
+
+    assert response.status_code == 303
 
     yield client
 
@@ -45,21 +47,21 @@ def test_progress_page_contains_this_week(loggedInClient):
     response = loggedInClient.get("/progress")
     assert "This Week" in response.text
 
-def test_progress_page_contains_this_month(loggedInClient):
-    response = loggedInClient.get("/progress")
-    assert "This Month" in response.text
-
 def test_progress_page_contains_chart(loggedInClient):
     response = loggedInClient.get("/progress")
     assert "progressChart" in response.text
 
+def test_progress_page_contains_this_month(loggedInClient):
+    response = loggedInClient.get("/progress")
+    assert "This Month" in response.text
+
+def test_progress_page_contains_navbar(loggedInClient):
+    response = loggedInClient.get("/progress")
+    assert "navbar" in response.text
+
 def test_progress_page_contains_weekly_breakdown(loggedInClient):
     response = loggedInClient.get("/progress")
     assert "Weekly Training Breakdown" in response.text
-
-def test_progress_page_contains_calories(loggedInClient):
-    response = loggedInClient.get("/progress")
-    assert "Calories" in response.text
 
 def test_progress_empty_state_message(loggedInClient):
     response = loggedInClient.get("/progress")

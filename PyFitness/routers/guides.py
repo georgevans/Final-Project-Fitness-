@@ -130,9 +130,58 @@ async def guides(request: Request):
             </nav>
 
             <div class="guides-wrapper">
-                <h1>Exercise Guides</h1>
+                <h1>Help & <span style="color: var(--toasted-almond)">Guides</span></h1>
+    
+                <h2>Frequently Asked Questions</h2>    
+                <div class="faq-section">
+                    <div class="faq-item">
+                        <button class="faq-question" onclick="toggleFaq(this)">How do I log a workout? <span>▼</span></button>
+                        <div class="faq-answer">
+                            <p>Click "Add Workout" in the navbar, enter a workout name and add your exercises. You can add cardio or weights exercises.</p>
+                        </div>
+                    </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">How do I view my progress? <span>▼</span></button>
+                    <div class="faq-answer">
+                        <p>Click "Progress" in the navbar to see your weekly training breakdown and workout stats.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">How do I create a training programme? <span>▼</span></button>
+                    <div class="faq-answer">
+                        <p>Click "Programmes" in the navbar. You can choose from a default plan or create a custom one.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">How do I add a competition? <span>▼</span></button>
+                    <div class="faq-answer">
+                        <p>Click "Competitions" in the navbar and use the Add Competition button to log an upcoming race or event.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">Can I sort my workouts by date or name? <span>▼</span></button>
+                    <div class="faq-answer">
+                        <p>Yes — on the home page use the sort dropdown filter above your workouts to sort alphabetically or by newest or oldest date.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">What types of exercises can I log? <span>▼</span></button>
+                    <div class="faq-answer">
+                        <p>You can log two types of exercises — cardio (running, cycling, swimming etc.) and weights. Each has different fields like distance and duration for cardio, and sets, reps and weight for weights.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" onclick="toggleFaq(this)">Can I search for specific workouts? <span>▼</span></button>
+                    <div class="faq-answer">
+                        <p>Yes — on the home page use the search bar above your logged workouts to filter by name.</p>
+                    </div>
+                </div>
+            </div>
+
+                <h2>Exercise <span style="color: var(--toasted-almond)">Guides</span></h2>
                 {guides_html}
             </div>
+
 
             <div id="modal" class="modal" onclick="closeModal(event)">
                 <div class="modal-content">
@@ -157,6 +206,18 @@ async def guides(request: Request):
                     }}
                 }}
             </script>
+
+            <script>
+                function toggleFaq(btn) {{
+                    const answer = btn.nextElementSibling;
+                    if (answer.style.display === "block") {{
+                        answer.style.display = "none";
+                    }} else {{
+                        answer.style.display = "block";
+                    }}              
+                }}
+            </script>
+
 
         </body>
     </html>
