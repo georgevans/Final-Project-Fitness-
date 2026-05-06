@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from database.db import get_workout_summary, get_workout_type_summary
+from database.db import get_workout_summary, get_workout_type_summary, get_calorie_summary
 import json  
 
 router = APIRouter()
@@ -12,20 +12,33 @@ async def progress(request: Request):
 
     userId = request.session["userId"]
     summary = get_workout_summary(userId)
+    calories = get_calorie_summary(userId)
+    calories_week = calories["this_week"]
+    calories_month = calories["this_month"]
     type_data = get_workout_type_summary(userId)
 
     this_week = summary["this_week"]
     this_month = summary["this_month"]
     
-    weeks = sorted(set(str(row[0].strftime("%d %b")) for row in type_data))
+    
+    weeks = []
     cardio_map = {}
     weights_map = {}
+
     for row in type_data:
         week_label = str(row[0].strftime("%d %b"))
-    if row[1] == "cardio":
-        cardio_map[week_label] = row[2]
-    elif row[1] == "weights":
-        weights_map[week_label] = row[2]
+        if week_label not in weeks:
+            weeks.append(week_label)
+        if row[1] == "cardio":
+            cardio_map[week_label] = row[2]
+        elif row[1] == "weights":
+            weights_map[week_label] = row[2]
+
+    cardio_data = [cardio_map.get(w, 0) for w in weeks]
+    weights_data = [weights_map.get(w, 0) for w in weeks]
+    labels_json = json.dumps(weeks)
+    cardio_json = json.dumps(cardio_data)
+    weights_json = json.dumps(weights_data)
     
     cardio_data = [cardio_map.get(w, 0) for w in weeks]
     weights_data = [weights_map.get(w, 0) for w in weeks]
@@ -43,6 +56,11 @@ async def progress(request: Request):
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             </head>
             <body>
+            <script>
+                if (localStorage.getItem('theme') === 'light') {{
+                    document.body.classList.add('light-mode');
+                }}
+            </script>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">Fitness Tracker</a>
                     <div class="navbar-links">
@@ -71,6 +89,16 @@ async def progress(request: Request):
                             <h3 class="stat-number">{this_month}</h3>
                             <p class="stat-sub">workouts</p>
                         </div>
+                        <div class="stat-card">
+                            <p class="stat-label">Calories This Week</p>
+                            <h3 class="stat-number">{calories_week}</h3>
+                            <p class="stat-sub">kcal</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="stat-label">Calories This Month</p>
+                            <h3 class="stat-number">{calories_month}</h3>
+                            <p class="stat-sub">kcal</p>
+                        </div>
                     </div>
                     <div class="chart-card">
                         <p class="section-heading">Weekly Training Breakdown</p>
@@ -78,6 +106,7 @@ async def progress(request: Request):
                             <span class="legend-cardio">Cardio</span>
                             <span class="legend-weights">Weights</span>
                         </div>
+                        {"<p>No workouts logged yet - add some workouts to see your progress!</p>" if len(type_data) == 0 else ""}
                         <canvas id="progressChart"></canvas>
                     </div>
                 </div>

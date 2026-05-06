@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS "Exercise" (
   "ExerciseID" SERIAL PRIMARY KEY,
   "WorkoutID" INT NOT NULL REFERENCES "Workout"("WorkoutID"),
   "Name" VARCHAR(100) NOT NULL,
-  "Type" "ActivityType" NOT NULL
+  "Type" "ActivityType" NOT NULL,
+  "Difficulty" INT
 );
 ''')
 
@@ -63,12 +64,10 @@ CREATE TABLE IF NOT EXISTS "Cardio" (
   "CardioID" SERIAL PRIMARY KEY,
   "ExerciseID" INT NOT NULL REFERENCES "Exercise"("ExerciseID"),
   "Duration" INT,
-  "Distance" VARCHAR(20),
+  "Distance" DECIMAL,
   "TimeUnit" VARCHAR(20),
-  "DistanceUnit" VARCHAR(20),
-  "Calories" INT,
-  "CardioType" VARCHAR(10),
-  "CardioDate" DATE
+  "DistanceUnit" VARCHAR(5),
+  "Calories" INT
 );
 ''')
 
@@ -102,7 +101,7 @@ CREATE TABLE IF NOT EXISTS "ExerciseSet" (
   "SetNumber" INT NOT NULL,
   "Reps" INT NOT NULL,
   "Weight" DECIMAL,
-  "Unit" "UnitType" NOT NULL,
+  "WeightUnit" VARCHAR(5),
   UNIQUE ("ExerciseID", "SetNumber")
 );
 ''')
@@ -141,8 +140,6 @@ CREATE TABLE IF NOT EXISTS "Events" (
 );
 ''')
 
-# Add more tables if needed, like Programme, ProgrammeDay, etc. from DB code
-
 cur.execute('''
 CREATE TABLE IF NOT EXISTS "Programme" (
   "ProgrammeID" SERIAL PRIMARY KEY,
@@ -175,6 +172,17 @@ CREATE TABLE IF NOT EXISTS "Competitions" (
   "Description" VARCHAR(100),
   "Completed" BOOLEAN DEFAULT FALSE,
   "ResultTime" DECIMAL
+);
+''')
+
+cur.execute('''
+CREATE TABLE "Settings" (
+    "SettingsID" SERIAL PRIMARY KEY,
+    "UserID" INTEGER NOT NULL,
+    "weightunit" VARCHAR(5),
+    "distanceunit" VARCHAR(5),
+    "CreatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "UpdatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ''')
 

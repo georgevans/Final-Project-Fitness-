@@ -12,7 +12,7 @@ def get_user_by_email(email):
     try:
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute('SELECT * FROM "Users" WHERE "Email" = %s', (email, ))
+        cur.execute('SELECT "UserID", "Username", "Email" FROM "Users" WHERE "Email" = %s', (email, ))
         user = cur.fetchone()
         cur.close()
         conn.close()
@@ -118,3 +118,119 @@ def get_workout_type_summary(userId: int):
     except Exception as e:
         print(f"Database error: {e}")
         return []
+    
+def get_user_settings(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            '''
+            SELECT weightunit, distanceunit
+            FROM "Settings"
+            WHERE "UserID" = %s
+            ''',
+            (userId,)
+        )
+
+        settings = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        if settings:
+            return settings
+        
+        return ("kg", "km")
+
+
+    except Exception as e:
+        print(f"Database error (get_user_settings): {e}")
+        return None
+    
+def update_user_settings(userId: int, weight_unit: str, distance_unit: str):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            '''
+            UPDATE "Settings"
+            SET
+                weightunit = %s,
+                distanceunit = %s,
+                updatedat = CURRENT_TIMESTAMP
+            WHERE "UserID" = %s
+            ''',
+            (weight_unit, distance_unit, userId)
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return True
+
+    except Exception as e:
+        print(f"Database error (update_user_settings): {e}")
+        return False
+    
+def set_default_settings(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            '''
+            INSERT INTO "Settings" ("UserID", weightunit, distanceunit)
+            VALUES (%s, %s, %s)
+            ON CONFLICT ("UserID")
+            DO NOTHING
+            ''',
+            (userId, 'kg', 'km')
+        )
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return True
+
+    except Exception as e:
+        print(f"Database error (set_default_settings): {e}")
+        return False
+
+def get_calorie_summary(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            '''SELECT SUM(c."Calories")
+               FROM "Cardio" c
+               JOIN "Exercise" e ON c."ExerciseID" = e."ExerciseID"
+               JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
+               WHERE w."UserID" = %s
+               AND w."WorkoutDate" >= DATE_TRUNC('week', CURRENT_DATE)''',
+            (userId,)
+        )
+        week_result = cur.fetchone()[0]
+        this_week = week_result if week_result else 0
+
+        cur.execute(
+            '''SELECT SUM(c."Calories")
+               FROM "Cardio" c
+               JOIN "Exercise" e ON c."ExerciseID" = e."ExerciseID"
+               JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
+               WHERE w."UserID" = %s
+               AND w."WorkoutDate" >= DATE_TRUNC('month', CURRENT_DATE)''',
+            (userId,)
+        )
+        month_result = cur.fetchone()[0]
+        this_month = month_result if month_result else 0
+
+        cur.close()
+        conn.close()
+        return {"this_week": this_week, "this_month": this_month}
+    except Exception as e:
+        print(f"Database error: {e}")
+        return {"this_week": 0, "this_month": 0}

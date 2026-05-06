@@ -231,6 +231,11 @@ async def competitions(request: Request, error: str = None):
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             </head>
             <body>
+            <script>
+                if (localStorage.getItem('theme') === 'light') {{
+                    document.body.classList.add('light-mode');
+                }}
+            </script>
                 <div class="workout-wrapper">
                     <nav class="navbar">
                         <a href="/home" class="navbar-brand">Fitness Tracker</a>
