@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS "Cardio" (
   "TimeUnit" VARCHAR(20),
   "DistanceUnit" VARCHAR(5),
   "CardioType" VARCHAR(10),
+  "CardioDate" DATE,
   "Calories" INT
 );
 ''')
