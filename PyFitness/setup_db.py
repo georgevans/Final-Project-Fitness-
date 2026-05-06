@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS "Workout" (
   "WorkoutID" SERIAL PRIMARY KEY,
   "UserID" INT NOT NULL REFERENCES "Users"("UserID"),
   "WorkoutDate" DATE,
-  "Name" VARCHAR(100)
+  "Name" VARCHAR(100),
+  "WorkoutTime" TIME
 );
 ''')
 
@@ -59,12 +60,15 @@ END $$;
 
 cur.execute('''
 CREATE TABLE IF NOT EXISTS "Cardio" (
-  "ExerciseID" INT PRIMARY KEY REFERENCES "Exercise"("ExerciseID"),
+  "CardioID" SERIAL PRIMARY KEY,
+  "ExerciseID" INT NOT NULL REFERENCES "Exercise"("ExerciseID"),
   "Duration" INT,
-  "Distance" DECIMAL,
-  "TimeUnit" "TimeUnit",
-  "DistanceUnit" "DistanceUnitType",
-  "Calories" INT
+  "Distance" VARCHAR(20),
+  "TimeUnit" VARCHAR(20),
+  "DistanceUnit" VARCHAR(20),
+  "Calories" INT,
+  "CardioType" VARCHAR(10),
+  "CardioDate" DATE
 );
 ''')
 

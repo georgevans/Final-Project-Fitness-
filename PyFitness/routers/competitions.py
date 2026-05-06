@@ -145,7 +145,7 @@ async def competitions(request: Request, error: str = None):
             FROM "Cardio" c
             JOIN "Exercise" e ON c."ExerciseID" = e."ExerciseID"
             JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
-            WHERE w."UserID" = %s
+            WHERE w."UserID" = %s AND c."CardioType" IS NOT NULL
             ORDER BY c."CardioDate" ASC
             ''',
             (userId,)
