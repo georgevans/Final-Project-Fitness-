@@ -1,9 +1,8 @@
-import datetime
 import html
 import json
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from database.db import get_workouts_by_user, get_todays_programme, get_connection, get_user_settings, get_calendar_events
+from database.db import get_workouts_by_user, get_connection, get_user_settings, get_calendar_events
 
 router = APIRouter()
 
