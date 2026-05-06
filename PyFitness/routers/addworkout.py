@@ -33,7 +33,7 @@ async def add_workout(request: Request, error: str = None):
                 }}
             </script>
                 <nav class="navbar">
-                    <a href="/home" class="navbar-brand">Fitness Tracker</a>
+                    <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
                         <a href="/home">Home</a>
                         <a href="/add-workout" class="active">Add Workout</a>
