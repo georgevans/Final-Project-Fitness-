@@ -70,6 +70,11 @@ async def home(request: Request):
                 <link rel="stylesheet" href="/static/home.css">
             </head>
             <body>
+            <script>
+                if (localStorage.getItem('theme') === 'light') {{
+                    document.body.classList.add('light-mode');
+                }}
+            </script>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">Fitness Tracker</a>
                     <div class="navbar-links">

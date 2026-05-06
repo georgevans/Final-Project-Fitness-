@@ -43,6 +43,11 @@ async def progress(request: Request):
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             </head>
             <body>
+            <script>
+                if (localStorage.getItem('theme') === 'light') {{
+                    document.body.classList.add('light-mode');
+                }}
+            </script>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">Fitness Tracker</a>
                     <div class="navbar-links">
