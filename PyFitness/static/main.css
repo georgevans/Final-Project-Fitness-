@@ -7,6 +7,8 @@
     --dark-wine: #81171B;
     --black-cherry: #540804;
     --charcoal: #3B3738;
+    --accent-green: #6FA57A;
+    --accent-green-hover: #5c8f67;
 
     --bg: #1a1517;
     --surface: #2a2224;
@@ -217,7 +219,23 @@ button.secondary:hover {
     color: var(--toasted-almond);
 }
 
-.navbar-links .nav-btn {
+.navbar-links a.add-workout {
+    background-color: var(--accent-green);
+    color: #1a1517;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.navbar-links a.add-workout:hover {
+    background-color: var(--accent-green-hover);
+    color: #1a1517;
+}
+
+.navbar-links .logout {
     background: var(--brick-red);
     color: var(--text-primary);
     padding: 6px 16px;
@@ -228,7 +246,7 @@ button.secondary:hover {
     text-transform: uppercase;
 }
 
-.navbar-links .nav-btn:hover {
+.navbar-links .logout:hover {
     background: var(--rosy-copper);
     color: var(--text-primary);
 }
@@ -262,3 +280,4 @@ body.light-mode .card h4 {
 body.light-mode .card p {
     color: var(--text-secondary);
 }
+
