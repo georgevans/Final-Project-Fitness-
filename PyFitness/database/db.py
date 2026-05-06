@@ -199,3 +199,38 @@ def set_default_settings(userId: int):
     except Exception as e:
         print(f"Database error (set_default_settings): {e}")
         return False
+
+def get_calorie_summary(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            '''SELECT SUM(c."Calories")
+               FROM "Cardio" c
+               JOIN "Exercise" e ON c."ExerciseID" = e."ExerciseID"
+               JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
+               WHERE w."UserID" = %s
+               AND w."WorkoutDate" >= DATE_TRUNC('week', CURRENT_DATE)''',
+            (userId,)
+        )
+        week_result = cur.fetchone()[0]
+        this_week = week_result if week_result else 0
+
+        cur.execute(
+            '''SELECT SUM(c."Calories")
+               FROM "Cardio" c
+               JOIN "Exercise" e ON c."ExerciseID" = e."ExerciseID"
+               JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
+               WHERE w."UserID" = %s
+               AND w."WorkoutDate" >= DATE_TRUNC('month', CURRENT_DATE)''',
+            (userId,)
+        )
+        month_result = cur.fetchone()[0]
+        this_month = month_result if month_result else 0
+
+        cur.close()
+        conn.close()
+        return {"this_week": this_week, "this_month": this_month}
+    except Exception as e:
+        print(f"Database error: {e}")
+        return {"this_week": 0, "this_month": 0}
