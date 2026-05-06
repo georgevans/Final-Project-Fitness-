@@ -58,7 +58,7 @@ def test_add_workout_page_contains_heading(logged_in_client):
     client, _ = logged_in_client
     response = client.get("/add-workout")
     assert "Add Workout" in response.text
-    assert "Fitness Tracker" in response.text
+    assert "FiTrackr" in response.text
 
 
 def test_add_workout_contains_form(logged_in_client):
