@@ -24,7 +24,7 @@ async def login(error: str = None):
             </script>
                 <div class="login-wrapper">
                     <div class="login-card">
-                        <p class="brand">Fitness Tracker</p>
+                        <p class="brand">FiTrackr</p>
                         <h1>Log <span>In</span></h1>
                         <div class="login-accent-line"></div>
                         {error_html}
@@ -79,6 +79,9 @@ async def login_post(
         cursor.close()
         conn.close()
     except Exception:
+        conn.rollback()
+        cursor.close()
+        conn.close()
         return RedirectResponse(url="/login?error=Login+failed", status_code=303)
 
     if not user:
