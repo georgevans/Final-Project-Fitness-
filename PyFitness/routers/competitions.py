@@ -153,7 +153,7 @@ async def competitions(request: Request, error: str = None):
                 (userId,)
             )
             cardio_data = cursor.fetchall()
-        except Exception as e:
+        except Exception:
             # CardioType column doesn't exist, skip pace chart
             cardio_data = []
 
