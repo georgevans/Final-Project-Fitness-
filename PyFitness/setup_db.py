@@ -61,11 +61,14 @@ END $$;
 
 cur.execute('''
 CREATE TABLE IF NOT EXISTS "Cardio" (
-  "ExerciseID" INT PRIMARY KEY REFERENCES "Exercise"("ExerciseID"),
+  "CardioID" SERIAL PRIMARY KEY,
+  "ExerciseID" INT NOT NULL REFERENCES "Exercise"("ExerciseID"),
   "Duration" INT,
   "Distance" DECIMAL,
   "TimeUnit" VARCHAR(20),
   "DistanceUnit" VARCHAR(5),
+  "CardioType" VARCHAR(10),
+  "CardioDate" DATE,
   "Calories" INT
 );
 ''')

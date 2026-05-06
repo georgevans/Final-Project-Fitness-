@@ -122,10 +122,13 @@ async def programmes(request: Request, error: str = None, success: str = None):
                     <a href="/home" class="navbar-brand">Fitness Tracker</a>
                     <div class="navbar-links">
                         <a href="/home">Home</a>
-                        <a href="/add-workout">Add Workout</a>
                         <a href="/programmes" class="active">Programmes</a>
+                        <a href="/competitions">Competitions</a>
+                        <a href="/progress">Progress</a>
+                        <a href="/guides">Help</a>
                         <a href="/settings">Settings</a>
-                        <a href="/logout" class="nav-btn">Logout</a>
+                        <a href="/add-workout" class="add-workout">Add Workout</a>
+                        <a href="/logout" class="logout">Logout</a>
                     </div>
                 </nav>
 
@@ -351,6 +354,9 @@ async def view_programme(request: Request, programmeId: int):
                         <a href="/home">Home</a>
                         <a href="/add-workout">Add Workout</a>
                         <a href="/programmes" class="active">Programmes</a>
+                        <a href="/competitions">Competitions</a>
+                        <a href="/progress">Progress</a>
+                        <a href="/guides">Help</a>
                         <a href="/settings">Settings</a>
                         <a href="/logout" class="nav-btn">Logout</a>
                     </div>
