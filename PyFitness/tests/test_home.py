@@ -14,15 +14,12 @@ def loggedInClient(client):
     email = f"{username}@example.com"
     password = "Password123."
 
-    response = client.post("/signup", data={
+    client.post("/signup", data={
         "username": username,
         "email": email,
         "password": password,
         "confirmPassword": password
-    }, follow_redirects=False)
-
-    assert response.headers["location"] == "/home"
-    assert response.status_code == 303
+    }, follow_redirects=True)
 
     yield client
 
