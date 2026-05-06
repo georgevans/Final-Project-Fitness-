@@ -245,13 +245,13 @@ async def competitions(request: Request, error: str = None):
                         <a href="/home" class="navbar-brand">Fitness Tracker</a>
                         <div class="navbar-links">
                             <a href="/home">Home</a>
-                            <a href="/add-workout">Add Workout</a>
                             <a href="/programmes">Programmes</a>
                             <a href="/competitions" class="active">Competitions</a>
                             <a href="/progress">Progress</a>
                             <a href="/guides">Help</a>
                             <a href="/settings">Settings</a>
-                            <a href="/logout" class="nav-btn">Logout</a>
+                            <a href="/add-workout" class="add-workout">Add Workout</a>
+                            <a href="/logout" class="logout">Logout</a>
                         </div>
                     </nav>
 
