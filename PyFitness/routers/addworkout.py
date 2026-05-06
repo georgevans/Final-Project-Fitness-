@@ -16,7 +16,8 @@ async def add_workout(request: Request, error: str = None):
         return RedirectResponse("/login", status_code=303)
 
     settings = get_user_settings(userId)
-
+    weight_unit = settings[0] if settings else "kg"
+    distance_unit = settings[1] if settings else "km"
 
     return f"""
         <html>
@@ -52,6 +53,14 @@ async def add_workout(request: Request, error: str = None):
                             <div class="form-group">
                                 <label>Workout Name</label>
                                 <input type="text" id="workoutName" name="workoutName" placeholder="Enter workout name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="workoutDate" name="workoutDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Time</label>
+                                <input type="time" id="workoutTime" name="workoutTime">
                             </div>
                             <div class="exercise-list" id="exerciseList"></div>
                             <button type="button" class="add-exercise-btn" onclick="addExercise()">+ Add Exercise</button>
@@ -96,7 +105,7 @@ async def add_workout(request: Request, error: str = None):
                                 <label>Duration (minutes)</label><br>
                                 <input type="number" name="duration_${{exerciseCount}}" placeholder="Enter duration"><br><br>
 
-                                <label>Distance {settings[1]}</label><br>
+                                <label>Distance ({distance_unit})</label><br>
                                 <input type="number" name="distance_${{exerciseCount}}" placeholder="Enter distance" step="0.1"><br><br>
 
                                 <label>Calories Burned</label><br>
@@ -155,7 +164,7 @@ async def add_workout(request: Request, error: str = None):
                             <strong>Set ${{setCount}}</strong><br><br>
                             <label>Reps</label><br>
                             <input type="number" name="reps_${{exerciseId}}_${{setCount}}" placeholder="Enter reps"><br><br>
-                            <label>Weight {settings[0]}</label><br>
+                            <label>Weight ({weight_unit})</label><br>
                             <input type="number" name="weight_${{exerciseId}}_${{setCount}}" placeholder="Enter weight" step="0.5"><br><br>
                             <button type="button" onclick="removeSet(${{exerciseId}}, ${{setCount}})">Remove Set</button>
                         `;
@@ -171,10 +180,13 @@ async def add_workout(request: Request, error: str = None):
         </html>
     """
 
+
 @router.post("/add-workout")
 async def add_workout_post(
     request: Request,
-    workoutName: str = Form(...)
+    workoutName: str = Form(...),
+    workoutDate: str = Form(None),
+    workoutTime: str = Form(None)
 ):
     userId = request.session.get("userId")
 
@@ -182,15 +194,11 @@ async def add_workout_post(
         return RedirectResponse('/login', status_code=303)
 
     settings = get_user_settings(userId)
-
-    if not settings:
-        settings = ("kg", "km")
-
     weight_unit = settings[0] if settings else "kg"
     distance_unit = settings[1] if settings else "km"
 
     formData = await request.form()
-    settings = get_user_settings(userId)
+
     exercises = []
     i = 1
     while f"workoutType_{i}" in formData:
@@ -226,63 +234,99 @@ async def add_workout_post(
     if len(exercises) <= 0:
         return RedirectResponse(url="/add-workout?error=Must+add+at+least+one+exercise+to+a+workout", status_code=303)
 
-    
-    if "userId" not in request.session:
-        return RedirectResponse(url="/add-workout?error=Please+log+in", status_code=303)
-
-    # Check null values
-
     if not workoutName.strip():
         return RedirectResponse(url="/add-workout?error=Workout+name+cannot+be+empty", status_code=303)
 
-    # Insert into db
+    if not workoutDate or workoutDate.strip() == "":
+        workoutDate = datetime.datetime.now().date()
+    else:
+        workoutDate = datetime.datetime.strptime(workoutDate, "%Y-%m-%d").date()
 
-    userId = request.session["userId"]
-    date = datetime.datetime.now()
-    time = datetime.datetime.now().time()
+    if not workoutTime or workoutTime.strip() == "":
+        workoutTime = datetime.datetime.now().time()
+    else:
+        workoutTime = datetime.datetime.strptime(workoutTime, "%H:%M").time()
+
+    conn = None
+    cursor = None
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
+
         cursor.execute(
             'INSERT INTO "Workout" ("UserID", "WorkoutDate", "Name", "WorkoutTime") VALUES (%s, %s, %s, %s) RETURNING "WorkoutID"',
-            (userId, date, workoutName, time)
+            (userId, workoutDate, workoutName, workoutTime)
         )
         workoutId = cursor.fetchone()[0]
 
         for exercise in exercises:
-            cursor.execute(
-                'INSERT INTO "Exercise" ("WorkoutID", "Name", "Type") VALUES (%s, %s, %s) RETURNING "ExerciseID"',
-                (workoutId, exercise["name"], exercise["type"])
-            )
+            if exercise["type"] == "weights":
+                cursor.execute(
+                    '''
+                    INSERT INTO "Exercise" ("WorkoutID", "Name", "Type", "Difficulty")
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING "ExerciseID"
+                    ''',
+                    (workoutId, exercise["name"], exercise["type"], exercise["difficulty"])
+                )
+            else:
+                cursor.execute(
+                    '''
+                    INSERT INTO "Exercise" ("WorkoutID", "Name", "Type")
+                    VALUES (%s, %s, %s)
+                    RETURNING "ExerciseID"
+                    ''',
+                    (workoutId, exercise["name"], exercise["type"])
+                )
+
             exerciseId = cursor.fetchone()[0]
 
             if exercise["type"] == "cardio":
                 cursor.execute(
-                    'INSERT INTO "Cardio" ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories") VALUES (%s, %s, %s, %s, %s, %s)',
-                    (exerciseId, exercise["duration"], exercise["distance"], "m", distance_unit, exercise["calories"])
+                    '''
+                    INSERT INTO "Cardio"
+                    ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories")
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ''',
+                    (
+                        exerciseId,
+                        exercise["duration"] or 0,
+                        exercise["distance"] or 0,
+                        "m",
+                        distance_unit,
+                        exercise["calories"] or 0
+                    )
                 )
             elif exercise["type"] == "weights":
-                cursor.execute(
-                    'INSERT INTO "Exercise" ("WorkoutID", "Name", "Type", "Difficulty") VALUES (%s, %s, %s, %s) RETURNING "ExerciseID"',
-                    (workoutId, exercise["name"], exercise["type"], exercise["difficulty"])
-                )
-                exerciseId = cursor.fetchone()[0]
                 for idx, s in enumerate(exercise["sets"]):
                     cursor.execute(
                         '''
-                        INSERT INTO "ExerciseSet" ("ExerciseID", "SetNumber", "Reps", "Weight", "WeightUnit")
+                        INSERT INTO "ExerciseSet"
+                        ("ExerciseID", "SetNumber", "Reps", "Weight", "WeightUnit")
                         VALUES (%s, %s, %s, %s, %s)
                         ''',
-                        (exerciseId, idx + 1, s["reps"], s["weight"], weight_unit)
+                        (
+                            exerciseId,
+                            idx + 1,
+                            s["reps"] or 0,
+                            s["weight"] or 0,
+                            weight_unit
+                        )
                     )
 
         conn.commit()
-        cursor.close()
-        conn.close()
+
     except Exception as e:
         print(f"Database error (addworkout): {e}")
+        if conn:
+            conn.rollback()
         return RedirectResponse(url="/add-workout?error=Workout+logging+failed", status_code=303)
 
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
     return RedirectResponse(url="/home", status_code=303)

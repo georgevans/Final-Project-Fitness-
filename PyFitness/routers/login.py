@@ -79,6 +79,9 @@ async def login_post(
         cursor.close()
         conn.close()
     except Exception:
+        conn.rollback()
+        cursor.close()
+        conn.close()
         return RedirectResponse(url="/login?error=Login+failed", status_code=303)
 
     if not user:
