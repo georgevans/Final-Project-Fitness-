@@ -35,10 +35,13 @@ async def add_workout(request: Request, error: str = None):
                     <a href="/home" class="navbar-brand">Fitness Tracker</a>
                     <div class="navbar-links">
                         <a href="/home">Home</a>
+                        <a href="/add-workout" class="active">Add Workout</a>
                         <a href="/programmes">Programmes</a>
+                        <a href="/competitions">Competitions</a>
+                        <a href="/progress">Progress</a>
+                        <a href="/guides">Help</a>
                         <a href="/settings">Settings</a>
-                        <a href="/add-workout" class="add-workout">Add Workout</a>
-                        <a href="/logout" class="logout">Logout</a>
+                        <a href="/logout" class="nav-btn">Logout</a>
                     </div>
                 </nav>
                 <div class="workout-wrapper">
@@ -60,6 +63,7 @@ async def add_workout(request: Request, error: str = None):
 
                 <script>
                     let exerciseCount = 0;
+                    let cardioCount = {{'Run': 0, 'Cycle': 0, 'Swim': 0, 'Weights': 0}};
 
                     function addExercise() {{
                         exerciseCount++;
@@ -69,7 +73,7 @@ async def add_workout(request: Request, error: str = None):
                         exercise.id = "exercise_" + exerciseCount;
                         exercise.style = "border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;";
                         exercise.innerHTML = `
-                            <h3>Exercise ${{exerciseCount}}</h3>
+                            <h3 id="exerciseTitle_${{exerciseCount}}">Exercise ${{exerciseCount}}</h3>
                             <label>Type</label><br>
                             <select name="workoutType_${{exerciseCount}}" onchange="handleTypeChange(this.value, ${{exerciseCount}})">
                                 <option value="">Select type</option>
@@ -78,6 +82,14 @@ async def add_workout(request: Request, error: str = None):
                             </select><br><br>
 
                             <div id="cardioFields_${{exerciseCount}}" style="display:none">
+                                <label>Cardio Type</label><br>
+                                <select name="cardioType_${{exerciseCount}}" onchange="handleCardioTypeChange(this.value, ${{exerciseCount}})" required>
+                                    <option value="">Select cardio type</option>
+                                    <option value="Run">Run</option>
+                                    <option value="Cycle">Cycle</option>
+                                    <option value="Swim">Swim</option>
+                                </select><br><br>
+
                                 <label>Exercise Name</label><br>
                                 <input type="text" name="exerciseName_${{exerciseCount}}" placeholder="e.g. Running"><br><br>
 
@@ -118,6 +130,7 @@ async def add_workout(request: Request, error: str = None):
                         if (value === "weights") {{
                             document.getElementById("weightFields_" + id).style.display = "block";
                             document.getElementById("cardioFields_" + id).style.display = "none";
+                            document.getElementById("exerciseTitle_" + id).textContent = "Weights " + (++cardioCount['Weights']);
                         }} else if (value === "cardio") {{
                             document.getElementById("cardioFields_" + id).style.display = "block";
                             document.getElementById("weightFields_" + id).style.display = "none";
@@ -125,6 +138,10 @@ async def add_workout(request: Request, error: str = None):
                             document.getElementById("cardioFields_" + id).style.display = "none";
                             document.getElementById("weightFields_" + id).style.display = "none";
                         }}
+                    }}
+
+                    function handleCardioTypeChange(cardioType, id) {{
+                        document.getElementById("exerciseTitle_" + id).textContent = cardioType + " " + (++cardioCount[cardioType]);
                     }}
 
                     function addSet(exerciseId) {{
@@ -182,6 +199,7 @@ async def add_workout_post(
         if exerciseType == "cardio":
             exercises.append({
                 "type": "cardio",
+                "cardioType": formData.get(f"cardioType_{i}"),
                 "name": formData.get(f"exerciseName_{i}"),
                 "duration": formData.get(f"duration_{i}"),
                 "distance": formData.get(f"distance_{i}"),
@@ -208,6 +226,7 @@ async def add_workout_post(
     if len(exercises) <= 0:
         return RedirectResponse(url="/add-workout?error=Must+add+at+least+one+exercise+to+a+workout", status_code=303)
 
+    
     if "userId" not in request.session:
         return RedirectResponse(url="/add-workout?error=Please+log+in", status_code=303)
 

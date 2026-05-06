@@ -2,6 +2,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection
 from datetime import datetime
+import json
 
 router = APIRouter()
 
@@ -19,6 +20,7 @@ async def competitions(request: Request, error: str = None):
 
     competition_rows = ""
     completed_rows = ""
+    cardio_data = []
 
     try:
         conn = get_connection()
@@ -136,6 +138,24 @@ async def competitions(request: Request, error: str = None):
                 </tr>
             """
 
+        # Fetch cardio pace data with exercise count per cardio type
+        try:
+            cursor.execute(
+                '''
+                SELECT ROW_NUMBER() OVER (PARTITION BY c."CardioType" ORDER BY c."CardioDate" ASC) as exercise_num, c."CardioType", c."Distance", c."Duration"
+                FROM "Cardio" c
+                JOIN "Exercise" e ON c."ExerciseID" = e."ExerciseID"
+                JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
+                WHERE w."UserID" = %s AND c."CardioType" IS NOT NULL
+                ORDER BY c."CardioDate" ASC
+                ''',
+                (userId,)
+            )
+            cardio_data = cursor.fetchall()
+        except Exception:
+            # CardioType column doesn't exist, skip pace chart
+            cardio_data = []
+
         cursor.close()
         conn.close()
 
@@ -157,6 +177,29 @@ async def competitions(request: Request, error: str = None):
                 <td>Failed to load personal bests</td>
             </tr>
         """
+        cardio_data = []
+
+    # format cardio data for chart (calculate pace and handle missing/invalid data)
+    cardio_dict = {}
+    for exercise_num, cardio_type, distance, duration in cardio_data:
+        try:
+            distance_float = float(distance) if distance else 0
+            duration_float = float(duration) if duration else 0
+            if distance_float > 0 and duration_float > 0:
+                pace = duration_float / distance_float
+                if exercise_num not in cardio_dict:
+                    cardio_dict[exercise_num] = {"Run": None, "Cycle": None, "Swim": None}
+                cardio_dict[exercise_num][cardio_type] = round(pace, 2)
+        except (ValueError, TypeError):
+            continue
+
+    sorted_exercises = sorted(cardio_dict.keys())
+    chart_data = {
+        "exercise_numbers": sorted_exercises,
+        "Run": [cardio_dict[e].get("Run") for e in sorted_exercises],
+        "Cycle": [cardio_dict[e].get("Cycle") for e in sorted_exercises],
+        "Swim": [cardio_dict[e].get("Swim") for e in sorted_exercises]
+    }
 
     # Show message if no competitions or completed competitions
     if not competition_rows:
@@ -181,12 +224,15 @@ async def competitions(request: Request, error: str = None):
         """
 
     # Competitions front page HTML
+    chart_data_json = json.dumps(chart_data)
+
     return f"""
         <html>
             <head>
                 <title>Competitions</title>
                 <link rel="stylesheet" href="/static/main.css">
                 <link rel="stylesheet" href="/static/competitions.css">
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             </head>
             <body>
             <script>
@@ -194,18 +240,21 @@ async def competitions(request: Request, error: str = None):
                     document.body.classList.add('light-mode');
                 }}
             </script>
-                <div class="workout-wrapper">
                     <nav class="navbar">
                         <a href="/home" class="navbar-brand">Fitness Tracker</a>
                         <div class="navbar-links">
                             <a href="/home">Home</a>
-                            <a href="/competitions">Competitions</a>
+                            <a href="/programmes">Programmes</a>
+                            <a href="/competitions" class="active">Competitions</a>
+                            <a href="/progress">Progress</a>
+                            <a href="/guides">Help</a>
                             <a href="/settings">Settings</a>
                             <a href="/add-workout" class="add-workout">Add Workout</a>
                             <a href="/logout" class="logout">Logout</a>
                         </div>
                     </nav>
 
+                <div class="workout-wrapper">
                     {error_html}
 
                     <div class="competition-page">
@@ -235,6 +284,11 @@ async def competitions(request: Request, error: str = None):
                                 {competition_rows}
                             </tbody>
                         </table>
+
+                        <div class="section-card" style="margin-top: 20px;">
+                            <h3>Cardio Pace Trends</h3>
+                            <canvas id="paceChart"></canvas>
+                        </div>
                     </div>
 
                     <div class="section-card">
@@ -367,6 +421,73 @@ async def competitions(request: Request, error: str = None):
                             input.readOnly = true;
                             input.value = STANDARD_DISTANCES[type];
                         }}
+                    }}
+
+                    //pace chart
+                    const chartData = {chart_data_json};
+                    if (chartData.exercise_numbers && chartData.exercise_numbers.length > 0) {{
+                        const ctx = document.getElementById('paceChart').getContext('2d');
+                        new Chart(ctx, {{
+                            type: 'line',
+                            data: {{
+                                labels: chartData.exercise_numbers.map(n => 'Exercise ' + n),
+                                datasets: [
+                                    {{
+                                        label: 'Run',
+                                        data: chartData.Run,
+                                        borderColor: '#FF6B6B',
+                                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                                        borderWidth: 2,
+                                        fill: false,
+                                        tension: 0.1,
+                                        spanGaps: true
+                                    }},
+                                    {{
+                                        label: 'Cycle',
+                                        data: chartData.Cycle,
+                                        borderColor: '#4ECDC4',
+                                        backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                                        borderWidth: 2,
+                                        fill: false,
+                                        tension: 0.1,
+                                        spanGaps: true
+                                    }},
+                                    {{
+                                        label: 'Swim',
+                                        data: chartData.Swim,
+                                        borderColor: '#45B7D1',
+                                        backgroundColor: 'rgba(69, 183, 209, 0.1)',
+                                        borderWidth: 2,
+                                        fill: false,
+                                        tension: 0.1,
+                                        spanGaps: true
+                                    }}
+                                ]
+                            }},
+                            options: {{
+                                responsive: true,
+                                plugins: {{
+                                    legend: {{
+                                        display: true,
+                                        position: 'top'
+                                    }}
+                                }},
+                                scales: {{
+                                    y: {{
+                                        title: {{
+                                            display: true,
+                                            text: 'Pace (mins/km)'
+                                        }}
+                                    }},
+                                    x: {{
+                                        title: {{
+                                            display: true,
+                                            text: 'Exercise Number'
+                                        }}
+                                    }}
+                                }}
+                            }}
+                        }});
                     }}
                 </script>
             </body>

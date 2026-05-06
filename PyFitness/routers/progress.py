@@ -68,6 +68,7 @@ async def progress(request: Request):
                         <a href="/programmes">Programmes</a>
                         <a href="/competitions">Competitions</a>
                         <a href="/progress" class="active">Progress</a>
+                        <a href="/guides">Help</a>
                         <a href="/settings">Settings</a>
                         <a href="/add-workout" class="add-workout">Add Workout</a>
                         <a href="/logout" class="logout">Logout</a>
