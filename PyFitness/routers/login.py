@@ -17,6 +17,11 @@ async def login(error: str = None):
                 <link rel="stylesheet" href="/static/login.css">
             </head>
             <body>
+            <script>
+                if (localStorage.getItem('theme') === 'light') {{
+                    document.body.classList.add('light-mode');
+                }}
+            </script>
                 <div class="login-wrapper">
                     <div class="login-card">
                         <p class="brand">Fitness Tracker</p>

@@ -18,6 +18,11 @@ async def signup(error: str = None):
                 <link rel="stylesheet" href="/static/signup.css">
             </head>
             <body>
+            <script>
+                if (localStorage.getItem('theme') === 'light') {{
+                    document.body.classList.add('light-mode');
+                }}
+            </script>
                 <div class="signup-wrapper">
                     <div class="signup-card">
                         <p class="brand">Fitness Tracker</p>

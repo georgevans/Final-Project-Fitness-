@@ -16,6 +16,26 @@
     --border: rgba(234, 140, 85, 0.15);
 }
 
+body.light-mode {
+    --bg: #f5f0eb;
+    --surface: #ffffff;
+    --surface-raised: #ede8e3;
+    --text-primary: #1a1517;
+    --text-secondary: #5a4f4a;
+    --border: rgba(234, 140, 85, 0.3);
+}
+
+body.light-mode .workout-card {
+    border: 1px solid var(--toasted-almond);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .card {
+    border: 1px solid var(--toasted-almond);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
@@ -211,4 +231,34 @@ button.secondary:hover {
 .navbar-links .nav-btn:hover {
     background: var(--rosy-copper);
     color: var(--text-primary);
+}
+
+body.light-mode .workout-card {
+    background: #f5f0eb;
+    color: var(--text-primary);
+}
+
+body.light-mode .workout-card h3 {
+    color: var(--toasted-almond);
+}
+
+body.light-mode .workout-card h5 {
+    color: var(--text-primary);
+}
+
+body.light-mode .workout-card p {
+    color: var(--text-secondary);
+}
+
+body.light-mode .card {
+    background: #f5f0eb;
+    color: var(--text-primary);
+}
+
+body.light-mode .card h4 {
+    color: var(--toasted-almond);
+}
+
+body.light-mode .card p {
+    color: var(--text-secondary);
 }

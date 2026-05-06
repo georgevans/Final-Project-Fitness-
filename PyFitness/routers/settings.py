@@ -24,6 +24,11 @@ async def settings(request: Request):
                 <link rel="stylesheet" href="/static/settings.css">
             </head>
             <body>
+            <script>
+                if (localStorage.getItem('theme') === 'light') {{
+                    document.body.classList.add('light-mode');
+                }}
+            </script>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">Fitness Tracker</a>
                     <div class="navbar-links">
@@ -36,6 +41,17 @@ async def settings(request: Request):
                     <div class="settings-container">
 
                         <h1 class="settings-title">Settings</h1>
+                        <div class="form-group" style="text-align: center;">
+                            <label>Appearance</label>
+                            <div class="toggle-row">
+                                <span>Dark Mode</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="themeToggle" onchange="toggleTheme(this)">
+                                    <span class="slider"></span>
+                                </label>
+                                <span>Light Mode</span>
+                            </div>
+                        </div>
 
                         <form class="unit-form" method="POST" action="/update-settings">
 
@@ -90,6 +106,22 @@ async def settings(request: Request):
                         setTimeout(() => {{
                             toast.remove();
                         }}, 2500);
+                    }}
+                    
+                    const toggle = document.getElementById('themeToggle');
+                    if (localStorage.getItem('theme') === 'light') {{
+                        document.body.classList.add('light-mode');
+                        toggle.checked = true;
+                    }}
+
+                    function toggleTheme(checkbox) {{
+                        if (checkbox.checked) {{
+                            document.body.classList.add('light-mode');
+                            localStorage.setItem('theme', 'light');
+                        }} else {{
+                            document.body.classList.remove('light-mode');
+                            localStorage.setItem('theme', 'dark');
+                        }}
                     }}
                 </script>
             </body>
