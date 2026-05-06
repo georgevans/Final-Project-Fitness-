@@ -230,12 +230,8 @@ async def add_workout_post(
     if "userId" not in request.session:
         return RedirectResponse(url="/add-workout?error=Please+log+in", status_code=303)
 
-    # Check null values
-
     if not workoutName.strip():
         return RedirectResponse(url="/add-workout?error=Workout+name+cannot+be+empty", status_code=303)
-
-    # Insert into db
 
     userId = request.session["userId"]
     date = datetime.datetime.now()

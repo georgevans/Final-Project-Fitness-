@@ -15,7 +15,6 @@ async def competitions(request: Request, error: str = None):
     if "userId" not in request.session:
         return RedirectResponse(url="/login?error=Please+log+in", status_code=303)
 
-    # Fetch competitions and personal bests from the database
     userId = request.session["userId"]
 
     competition_rows = ""
@@ -138,7 +137,6 @@ async def competitions(request: Request, error: str = None):
                 </tr>
             """
 
-        # Fetch cardio pace data with exercise count per cardio type
         try:
             cursor.execute(
                 '''
