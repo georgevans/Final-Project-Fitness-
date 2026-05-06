@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from database.db import get_workout_summary, get_workout_type_summary
+from database.db import get_workout_summary, get_workout_type_summary, get_calorie_summary
 import json  
 
 router = APIRouter()
@@ -12,6 +12,9 @@ async def progress(request: Request):
 
     userId = request.session["userId"]
     summary = get_workout_summary(userId)
+    calories = get_calorie_summary(userId)
+    calories_week = calories["this_week"]
+    calories_month = calories["this_month"]
     type_data = get_workout_type_summary(userId)
 
     this_week = summary["this_week"]
@@ -53,6 +56,11 @@ async def progress(request: Request):
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             </head>
             <body>
+            <script>
+                if (localStorage.getItem('theme') === 'light') {{
+                    document.body.classList.add('light-mode');
+                }}
+            </script>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">Fitness Tracker</a>
                     <div class="navbar-links">
@@ -79,6 +87,16 @@ async def progress(request: Request):
                             <p class="stat-label">This Month</p>
                             <h3 class="stat-number">{this_month}</h3>
                             <p class="stat-sub">workouts</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="stat-label">Calories This Week</p>
+                            <h3 class="stat-number">{calories_week}</h3>
+                            <p class="stat-sub">kcal</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="stat-label">Calories This Month</p>
+                            <h3 class="stat-number">{calories_month}</h3>
+                            <p class="stat-sub">kcal</p>
                         </div>
                     </div>
                     <div class="chart-card">

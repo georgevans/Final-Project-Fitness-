@@ -109,6 +109,11 @@ async def guides(request: Request):
             <link rel="stylesheet" href="/static/guides.css">
         </head>
         <body>
+            <script>
+                if (localStorage.getItem('theme') === 'light') {{
+                    document.body.classList.add('light-mode');
+                }}
+            </script>
 
             <nav class="navbar">
                 <a href="/home" class="navbar-brand">Fitness Tracker</a>
@@ -118,7 +123,7 @@ async def guides(request: Request):
                     <a href="/programmes">Programmes</a>
                     <a href="/competitions">Competitions</a>
                     <a href="/progress">Progress</a>
-                    <a href="/guides" class="active">Guides</a>
+                    <a href="/guides" class="active">Help</a>
                     <a href="/settings">Settings</a>
                     <a href="/logout" class="nav-btn">Logout</a>
                 </div>

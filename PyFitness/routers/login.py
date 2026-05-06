@@ -2,7 +2,7 @@ import re
 import bcrypt
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from database.db import get_connection
+from database.db import get_connection, set_default_settings, get_user_settings
 
 router = APIRouter()
 
@@ -17,6 +17,11 @@ async def login(error: str = None):
                 <link rel="stylesheet" href="/static/login.css">
             </head>
             <body>
+            <script>
+                if (localStorage.getItem('theme') === 'light') {{
+                    document.body.classList.add('light-mode');
+                }}
+            </script>
                 <div class="login-wrapper">
                     <div class="login-card">
                         <p class="brand">Fitness Tracker</p>
@@ -86,5 +91,12 @@ async def login_post(
     # Save session and return to home
     request.session["userId"] = user[0]
     request.session["username"] = username
+
+    # Check if default settings exist
+
+    userId = request.session["userId"]
+
+    if get_user_settings(userId) is None:
+        set_default_settings(userId)
 
     return RedirectResponse(url="/home", status_code=303)
