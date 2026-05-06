@@ -50,6 +50,14 @@ async def add_workout(request: Request, error: str = None):
                                 <label>Workout Name</label>
                                 <input type="text" id="workoutName" name="workoutName" placeholder="Enter workout name" required>
                             </div>
+                            <div class="form-group">
+                                <label>Date</label>
+                                <input type="date" id="workoutDate" name="workoutDate">
+                            </div>
+                            <div class="form-group">
+                                <label>Time</label>
+                                <input type="time" id="workoutTime" name="workoutTime">
+                            </div>
                             <div class="exercise-list" id="exerciseList"></div>
                             <button type="button" class="add-exercise-btn" onclick="addExercise()">+ Add Exercise</button>
                             <hr class="form-divider">
@@ -157,7 +165,9 @@ async def add_workout(request: Request, error: str = None):
 @router.post("/add-workout")
 async def add_workout_post(
     request: Request,
-    workoutName: str = Form(...)
+    workoutName: str = Form(...),
+    workoutDate: str = Form(None),
+    workoutTime: str = Form(None)
 ):
     userId = request.session.get("userId")
 
@@ -215,19 +225,27 @@ async def add_workout_post(
 
     if not workoutName.strip():
         return RedirectResponse(url="/add-workout?error=Workout+name+cannot+be+empty", status_code=303)
+    
+    if not workoutDate:
+        workoutDate = datetime.datetime.now().date()
+    else:
+        workoutDate = datetime.datetime.strptime(workoutDate, "%Y-%m-%d").date()
+
+    if not workoutTime:
+        workoutTime = datetime.datetime.now().time()
+    else:
+        workoutTime = datetime.datetime.strptime(workoutTime, "%H:%M").time()
 
     # Insert into db
 
     userId = request.session["userId"]
-    date = datetime.datetime.now()
-    time = datetime.datetime.now().time()
 
     try:
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute(
             'INSERT INTO "Workout" ("UserID", "WorkoutDate", "Name", "WorkoutTime") VALUES (%s, %s, %s, %s) RETURNING "WorkoutID"',
-            (userId, date, workoutName, time)
+            (userId, workoutDate, workoutName, workoutTime)
         )
         workoutId = cursor.fetchone()[0]
 
