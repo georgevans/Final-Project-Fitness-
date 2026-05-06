@@ -41,7 +41,8 @@ async def add_workout(request: Request, error: str = None):
                         <a href="/progress">Progress</a>
                         <a href="/guides">Help</a>
                         <a href="/settings">Settings</a>
-                        <a href="/logout" class="nav-btn">Logout</a>
+                        <a href="/add-workout" class="add-workout">Add Workout</a>
+                        <a href="/logout" class="logout">Logout</a>
                     </div>
                 </nav>
                 <div class="workout-wrapper">
