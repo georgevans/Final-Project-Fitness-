@@ -261,3 +261,21 @@ def get_calorie_summary(userId: int):
     except Exception as e:
         print(f"Database error: {e}")
         return {"this_week": 0, "this_month": 0}
+    
+
+def delete_workout(workoutId: int, userId: int):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT "ExerciseID" FROM "Exercise" WHERE "WorkoutID" = %s',(workoutId,))
+        exercises = cursor.fetchall()
+        for exercise in exercises:
+            cursor.execute('DELETE FROM "Cardio" WHERE "ExerciseID" = %s', (exercise[0],))
+            cursor.execute('DELETE FROM "ExerciseSet" WHERE "ExerciseID" = %s', (exercise[0],))
+        cursor.execute('DELETE FROM "Exercise" WHERE "WorkoutID" = %s', (workoutId,))
+        cursor.execute('DELETE FROM "Workout" WHERE "WorkoutID" = %s AND "UserID" = %s', (workoutId, userId))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Database error: {e}")

@@ -1,8 +1,8 @@
 import html
 import json
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from database.db import get_workouts_by_user, get_connection, get_user_settings, get_calendar_events
+from database.db import get_workouts_by_user, get_connection, get_user_settings, get_calendar_events, delete_workout 
 
 router = APIRouter()
 
@@ -35,6 +35,10 @@ async def home(request: Request):
                     <h5>Title: {title}</h5>
                     <p data-date="{workout[2]}"><strong>Date:</strong> {workout[2]}</p>
                     <p><strong>Time:</strong> {str(workout[3])[:8]}</p>
+                    <form action="/delete-workout" method="post" onclick="event.stopPropagation()" onsubmit="return confirm('Are you sure you want to delete this workout?')">
+                        <input type="hidden" name="workoutId" value="{workout[0]}">
+                        <button type="submit" class="secondary">Delete</button>
+                    </form>
                 </div>
             """
 
@@ -47,6 +51,7 @@ async def home(request: Request):
             events_by_date[date_str] = []
         events_by_date[date_str].append({"name": name, "type": event_type})
     events_json = json.dumps(events_by_date)
+    
 
     return f"""
         <html>
@@ -255,6 +260,8 @@ async def home(request: Request):
                             const dateA = new Date(a.querySelector('[data-date]').dataset.date);
                             const dateB = new Date(b.querySelector('[data-date]').dataset.date);
 
+                            if (sort === 'az') return titleA.localeCompare(titleB);
+                            if (sort === 'za') return titleB.localeCompare(titleA);
                             if (sort === 'newest') return dateB - dateA;
                             if (sort === 'oldest') return dateA - dateB;
 
@@ -268,6 +275,15 @@ async def home(request: Request):
             </body>
         </html>
     """
+    
+@router.post("/delete-workout")
+async def delete_workout_post(request: Request, workoutId: int = Form(...)):
+    if "userId" not in request.session:
+        return RedirectResponse(url="/login?error=Must+be+logged+in", status_code=303)
+    userId = request.session["userId"]
+    delete_workout(workoutId, userId)
+    return RedirectResponse(url="/home", status_code=303)
+
 
 @router.get("/workout-details/{workout_id}")
 async def workout_details(workout_id: int, request: Request):
