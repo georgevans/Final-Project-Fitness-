@@ -139,7 +139,6 @@ async def competitions(request: Request, error: str = None):
             """
 
         # Fetch cardio pace data with exercise count per cardio type
-        # Note: This requires CardioType and CardioDate columns which may not exist in all schema versions
         try:
             cursor.execute(
                 '''
