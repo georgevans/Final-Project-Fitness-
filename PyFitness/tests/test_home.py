@@ -72,3 +72,7 @@ def test_home_page_contains_add_workout_link(loggedInClient):
 def test_home_page_contains_progress_link(loggedInClient):
     response = loggedInClient.get("/home")
     assert "/progress" in response.text
+    
+def test_home_page_contains_delete_button(loggedInClient):
+    response = loggedInClient.get("/home")
+    assert "Delete" in response.text or "No workouts logged yet" in response.text

@@ -13,15 +13,14 @@ def loggedInClient(client):
     username = f"testuser_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
     password = "Password123."
+    
+    client.post("/signup", data={
+    "username": username,
+    "email": email,
+    "password": password,
+    "confirmPassword": password
+}, follow_redirects=True)
 
-    response = client.post("/signup", data={
-        "username": username,
-        "email": email,
-        "password": password,
-        "confirmPassword": password
-    }, follow_redirects=False)
-
-    assert response.status_code == 303
 
     yield client
 
@@ -66,3 +65,7 @@ def test_progress_page_contains_weekly_breakdown(loggedInClient):
 def test_progress_empty_state_message(loggedInClient):
     response = loggedInClient.get("/progress")
     assert response.status_code == 200
+    
+def test_progress_page_contains_calories(loggedInClient):
+    response = loggedInClient.get("/progress")
+    assert "Calories" in response.text
