@@ -95,7 +95,6 @@ async def login_post(
     request.session["userId"] = user[0]
     request.session["username"] = username
 
-    # Check if default settings exist
 
     userId = request.session["userId"]
 

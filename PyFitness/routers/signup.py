@@ -112,8 +112,6 @@ async def signup_post(
         print(f"Database error (signup): {e}")
         return RedirectResponse(url="/signup?error=Account+Signup+Failed", status_code=303)
 
-    # Update session information 
-
     user = get_user_by_email(email)
     if not user:
         return RedirectResponse(
@@ -127,7 +125,6 @@ async def signup_post(
     
     set_default_settings(userId)
 
-    # Return to home  
     return RedirectResponse(url="/home", status_code=303)
 
 

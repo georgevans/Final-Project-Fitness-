@@ -10,7 +10,6 @@ from routers.competitions import validate_competition, validate_result_time
 def client():
     return TestClient(app)
 
-##updated loggedInClient fixture to create a new user for each test run to avoid conflicts with existing users in the database
 @pytest.fixture
 def loggedInClient(client):
     username = f"testuser_{uuid.uuid4().hex[:8]}"
@@ -33,12 +32,10 @@ def loggedInClient(client):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        # Get the UserID
         cursor.execute('SELECT "UserID" FROM "Users" WHERE "Username" = %s', (username,))
         user_result = cursor.fetchone()
         if user_result:
             userId = user_result[0]
-            # Delete in order of foreign key dependencies as db was not deleting
             cursor.execute('DELETE FROM "Cardio" WHERE "ExerciseID" IN (SELECT "ExerciseID" FROM "Exercise" WHERE "WorkoutID" IN (SELECT "WorkoutID" FROM "Workout" WHERE "UserID" = %s))', (userId,))
             cursor.execute('DELETE FROM "ExerciseSet" WHERE "ExerciseID" IN (SELECT "ExerciseID" FROM "Exercise" WHERE "WorkoutID" IN (SELECT "WorkoutID" FROM "Workout" WHERE "UserID" = %s))', (userId,))
             cursor.execute('DELETE FROM "Exercise" WHERE "WorkoutID" IN (SELECT "WorkoutID" FROM "Workout" WHERE "UserID" = %s)', (userId,))
@@ -297,13 +294,11 @@ def test_personal_bests_empty_when_no_completed(loggedInClient):
 
 def test_personal_bests_shows_best_time(loggedInClient):
     client, username = loggedInClient
-    # Get userId
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute('SELECT "UserID" FROM "Users" WHERE "Username" = %s', (username,))
     userId = cursor.fetchone()[0]
 
-    # Insert completed competitions
     cursor.execute('''
         INSERT INTO "Competitions" ("Race", "CompetitionType", "Distance", "Date", "Description", "UserID", "Completed", "ResultTime")
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
@@ -349,7 +344,6 @@ def test_pace_chart_displays_cardio_data(loggedInClient, cardio_type, exercise_n
     cursor.execute('SELECT "UserID" FROM "Users" WHERE "Username" = %s', (username,))
     userId = cursor.fetchone()[0]
 
-    # Create workout
     cursor.execute(
         'INSERT INTO "Workout" ("UserID", "WorkoutDate", "Name", "WorkoutTime") VALUES (%s, %s, %s, %s) RETURNING "WorkoutID"',
         (userId, day, f"{cardio_type} Session", "10:00:00")
@@ -363,7 +357,6 @@ def test_pace_chart_displays_cardio_data(loggedInClient, cardio_type, exercise_n
     )
     exerciseId = cursor.fetchone()[0]
 
-    # Insert cardio data
     cursor.execute(
         'INSERT INTO "Cardio" ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories", "CardioType", "CardioDate") VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
         (exerciseId, 45, distance, "minutes", "km", 400, cardio_type, day)

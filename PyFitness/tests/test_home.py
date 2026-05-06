@@ -57,9 +57,9 @@ def test_home_page_contains_sort_dropdown(loggedInClient):
     response = loggedInClient.get("/home")
     assert "sortSelect" in response.text
 
-def test_home_page_contains_todays_training(loggedInClient):
+def test_home_page_contains_calendar(loggedInClient):
     response = loggedInClient.get("/home")
-    assert "Today" in response.text
+    assert "Calendar" in response.text
 
 def test_home_page_contains_navbar(loggedInClient):
     response = loggedInClient.get("/home")
