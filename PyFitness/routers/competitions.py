@@ -139,18 +139,23 @@ async def competitions(request: Request, error: str = None):
             """
 
         # Fetch cardio pace data with exercise count per cardio type
-        cursor.execute(
-            '''
-            SELECT ROW_NUMBER() OVER (PARTITION BY c."CardioType" ORDER BY c."CardioDate" ASC) as exercise_num, c."CardioType", c."Distance", c."Duration"
-            FROM "Cardio" c
-            JOIN "Exercise" e ON c."ExerciseID" = e."ExerciseID"
-            JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
-            WHERE w."UserID" = %s AND c."CardioType" IS NOT NULL
-            ORDER BY c."CardioDate" ASC
-            ''',
-            (userId,)
-        )
-        cardio_data = cursor.fetchall()
+        # Note: This requires CardioType and CardioDate columns which may not exist in all schema versions
+        try:
+            cursor.execute(
+                '''
+                SELECT ROW_NUMBER() OVER (PARTITION BY c."CardioType" ORDER BY c."CardioDate" ASC) as exercise_num, c."CardioType", c."Distance", c."Duration"
+                FROM "Cardio" c
+                JOIN "Exercise" e ON c."ExerciseID" = e."ExerciseID"
+                JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
+                WHERE w."UserID" = %s AND c."CardioType" IS NOT NULL
+                ORDER BY c."CardioDate" ASC
+                ''',
+                (userId,)
+            )
+            cardio_data = cursor.fetchall()
+        except Exception as e:
+            # CardioType column doesn't exist, skip pace chart
+            cardio_data = []
 
         cursor.close()
         conn.close()
@@ -236,7 +241,6 @@ async def competitions(request: Request, error: str = None):
                     document.body.classList.add('light-mode');
                 }}
             </script>
-                <div class="workout-wrapper">
                     <nav class="navbar">
                         <a href="/home" class="navbar-brand">Fitness Tracker</a>
                         <div class="navbar-links">
@@ -251,6 +255,7 @@ async def competitions(request: Request, error: str = None):
                         </div>
                     </nav>
 
+                <div class="workout-wrapper">
                     {error_html}
 
                     <div class="competition-page">

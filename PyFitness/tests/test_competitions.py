@@ -359,7 +359,7 @@ def test_pace_chart_displays_cardio_data(loggedInClient, cardio_type, exercise_n
     # Create exercise
     cursor.execute(
         'INSERT INTO "Exercise" ("WorkoutID", "Name", "Type") VALUES (%s, %s, %s) RETURNING "ExerciseID"',
-        (workoutId, exercise_name, "cardio")
+        (workoutId, exercise_name, "C")
     )
     exerciseId = cursor.fetchone()[0]
 
