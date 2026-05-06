@@ -97,6 +97,33 @@ def get_workout_summary(userId: int):
     
 
 
+def get_calendar_events(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            '''SELECT "WorkoutDate"::text, "Name", 'workout' as type FROM "Workout"
+               WHERE "UserID" = %s
+               UNION ALL
+               SELECT "Date"::text, "Race", 'competition' as type FROM "Competitions"
+               WHERE "UserID" = %s
+               UNION ALL
+               SELECT gs::date::text, pd."ActivityName", 'programme' as type
+               FROM "Programme" p
+               JOIN "ProgrammeDay" pd ON p."ProgrammeID" = pd."ProgrammeID"
+               CROSS JOIN generate_series(p."StartDate", p."EndDate", '1 day'::interval) gs
+               WHERE p."UserID" = %s
+               AND TO_CHAR(gs, 'Day') ILIKE pd."DayOfWeek" || '%%' ''',
+            (userId, userId, userId)
+        )
+        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+        return rows
+    except Exception as e:
+        print(f"Database error: {e}")
+        return []
+
 def get_workout_type_summary(userId: int):
     try:
         conn = get_connection()

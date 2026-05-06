@@ -1,9 +1,9 @@
 import datetime
 import html
+import json
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.responses import JSONResponse
-from database.db import get_workouts_by_user, get_todays_programme, get_connection, get_user_settings
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from database.db import get_workouts_by_user, get_todays_programme, get_connection, get_user_settings, get_calendar_events
 
 router = APIRouter()
 
@@ -41,26 +41,13 @@ async def home(request: Request):
 
         workout_html += "</div>"
 
-    dayOfWeek = datetime.datetime.now().strftime("%A")
-    todaysProgramme = get_todays_programme(userId, dayOfWeek)
-
-    today_html = ""
-    if todaysProgramme:
-        for session in todaysProgramme:
-            status = "Done" if session[2] else "Planned"
-            today_html += f"""
-                <div class="card">
-                    <h4>Session: {session[3]}</h4>
-                    <p><strong>Status:</strong> {status}</p>
-                    <a href="/programmes"><button>View Programme</button></a>
-                </div>
-            """
-    else:
-        today_html = """
-            <div class="empty-state">
-                <p>No programme scheduled for today!</p>
-            </div>
-        """
+    calendar_events = get_calendar_events(userId)
+    events_by_date = {}
+    for date_str, name, event_type in calendar_events:
+        if date_str not in events_by_date:
+            events_by_date[date_str] = []
+        events_by_date[date_str].append({"name": name, "type": event_type})
+    events_json = json.dumps(events_by_date)
 
     return f"""
         <html>
@@ -106,9 +93,19 @@ async def home(request: Request):
 
                     {workout_html}
 
-                    <div class="today-section">
-                        <h2>Today's <span>Training</span></h2>
-                        {today_html}
+                    <div class="calendar-section">
+                        <h2>My <span>Calendar</span></h2>
+                        <div class="calendar-nav">
+                            <button onclick="prevMonth()">&#8249;</button>
+                            <span id="calendarTitle"></span>
+                            <button onclick="nextMonth()">&#8250;</button>
+                        </div>
+                        <div class="calendar-grid" id="calendarGrid"></div>
+                        <div class="calendar-legend">
+                            <span class="legend-workout">&#9679; Workout</span>
+                            <span class="legend-competition">&#9679; Competition</span>
+                            <span class="legend-programme">&#9679; Programme</span>
+                        </div>
                     </div>
                 </div>
 
@@ -158,6 +155,116 @@ async def home(request: Request):
                     function closeModal() {{
                         document.getElementById("workoutModal").style.display = "none";
                     }}
+
+                    const events = {events_json};
+                    let currentYear = new Date().getFullYear();
+                    let currentMonth = new Date().getMonth();
+
+                    function renderCalendar(year, month) {{
+                        const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+                        document.getElementById('calendarTitle').textContent = monthNames[month] + ' ' + year;
+
+                        const grid = document.getElementById('calendarGrid');
+                        grid.innerHTML = '';
+
+                        const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                        days.forEach(d => {{
+                            const header = document.createElement('div');
+                            header.className = 'calendar-day-header';
+                            header.textContent = d;
+                            grid.appendChild(header);
+                        }});
+
+                        const firstDay = new Date(year, month, 1);
+                        let startOffset = firstDay.getDay() - 1;
+                        if (startOffset < 0) startOffset = 6;
+
+                        for (let i = 0; i < startOffset; i++) {{
+                            const empty = document.createElement('div');
+                            empty.className = 'calendar-day empty';
+                            grid.appendChild(empty);
+                        }}
+
+                        const daysInMonth = new Date(year, month + 1, 0).getDate();
+                        const today = new Date();
+
+                        for (let day = 1; day <= daysInMonth; day++) {{
+                            const cell = document.createElement('div');
+                            cell.className = 'calendar-day';
+
+                            const mm = String(month + 1).padStart(2, '0');
+                            const dd = String(day).padStart(2, '0');
+                            const dateStr = year + '-' + mm + '-' + dd;
+
+                            if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {{
+                                cell.classList.add('today');
+                            }}
+
+                            const dayNum = document.createElement('span');
+                            dayNum.className = 'day-number';
+                            dayNum.textContent = day;
+                            cell.appendChild(dayNum);
+
+                            if (events[dateStr]) {{
+                                events[dateStr].forEach(event => {{
+                                    const dot = document.createElement('div');
+                                    dot.className = 'event-dot event-' + event.type;
+                                    dot.textContent = event.name;
+                                    cell.appendChild(dot);
+                                }});
+                            }}
+
+                            grid.appendChild(cell);
+                        }}
+                    }}
+
+                    function prevMonth() {{
+                        currentMonth--;
+                        if (currentMonth < 0) {{ currentMonth = 11; currentYear--; }}
+                        renderCalendar(currentYear, currentMonth);
+                    }}
+
+                    function nextMonth() {{
+                        currentMonth++;
+                        if (currentMonth > 11) {{ currentMonth = 0; currentYear++; }}
+                        renderCalendar(currentYear, currentMonth);
+                    }}
+
+                    renderCalendar(currentYear, currentMonth);
+
+                    function filterWorkouts() {{
+                        const input = document.getElementById('searchInput').value.toLowerCase();
+                        const cards = document.querySelectorAll('.workout-card');
+                        for (let i = 0; i < cards.length; i++) {{
+                            const title = cards[i].querySelector('h5').textContent.toLowerCase();
+                            if (title.includes(input)) {{
+                                cards[i].style.display = 'block';
+                            }} else {{
+                                cards[i].style.display = 'none';
+                            }}
+                        }}
+                    }}
+
+                    function sortWorkouts() {{
+                        const sort = document.getElementById('sortSelect').value;
+                        const grid = document.querySelector('.workout-grid');
+                        if (!grid) return;
+                        const cards = Array.from(grid.children);
+                        cards.sort(function(a, b) {{
+                            const titleA = a.querySelector('h5').textContent.toLowerCase();
+                            const titleB = b.querySelector('h5').textContent.toLowerCase();
+                            const dateA = new Date(a.querySelector('[data-date]').dataset.date);
+                            const dateB = new Date(b.querySelector('[data-date]').dataset.date);
+
+                            if (sort === 'newest') return dateB - dateA;
+                            if (sort === 'oldest') return dateA - dateB;
+
+                            return 0;
+                        }});
+                        for (let i = 0; i < cards.length; i++) {{
+                            grid.appendChild(cards[i]);
+                        }}
+                    }}
                 </script>
             </body>
         </html>
@@ -172,7 +279,6 @@ async def workout_details(workout_id: int, request: Request):
 
     settings = get_user_settings(userId)
 
-   # weight_unit = settings[0] if settings else "kg"
     distance_unit = settings[1] if settings else "km"
 
     conn = get_connection()
