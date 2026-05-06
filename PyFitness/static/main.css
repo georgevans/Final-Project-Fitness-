@@ -281,3 +281,19 @@ body.light-mode .card p {
     color: var(--text-secondary);
 }
 
+body.light-mode .calendar-day {
+    background: #f5f0eb;
+    color: var(--text-primary);
+}
+
+body.light-mode .calendar-day-header {
+    color: var(--text-secondary);
+}
+
+body.light-mode .calendar-day.today {
+    border-color: var(--toasted-almond);
+}
+
+body.light-mode #calendarGrid {
+    background: transparent;
+}
