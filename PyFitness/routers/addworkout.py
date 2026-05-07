@@ -92,7 +92,7 @@ async def add_workout(request: Request, error: str = None):
 
                             <div id="cardioFields_${{exerciseCount}}" style="display:none">
                                 <label>Cardio Type</label><br>
-                                <select name="cardioType_${{exerciseCount}}" onchange="handleCardioTypeChange(this.value, ${{exerciseCount}})" required>
+                                <select name="cardioType_${{exerciseCount}}" onchange="handleCardioTypeChange(this.value, ${{exerciseCount}})">
                                     <option value="">Select cardio type</option>
                                     <option value="Run">Run</option>
                                     <option value="Cycle">Cycle</option>

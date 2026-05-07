@@ -279,3 +279,48 @@ def delete_workout(workoutId: int, userId: int):
         conn.close()
     except Exception as e:
         print(f"Database error: {e}")
+        
+        
+def get_workout_analysis(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            '''SELECT DATE_TRUNC('week', "WorkoutDate"), COUNT(*)
+               FROM "Workout"
+               WHERE "UserID" = %s
+               AND "WorkoutDate" >= CURRENT_DATE - INTERVAL '4 weeks'
+               GROUP BY DATE_TRUNC('week', "WorkoutDate")
+               ORDER BY DATE_TRUNC('week', "WorkoutDate") ASC''',
+            (userId,)
+        )
+        weekly_counts = cur.fetchall()
+        cur.execute(
+            '''SELECT e."Type", COUNT(*)
+               FROM "Exercise" e
+               JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
+               WHERE w."UserID" = %s
+               AND w."WorkoutDate" >= CURRENT_DATE - INTERVAL '4 weeks'
+               GROUP BY e."Type"''',
+            (userId,)
+        )
+        type_counts = cur.fetchall()
+        cur.close()
+        conn.close()
+        return {"weekly": weekly_counts, "types": type_counts}
+    except Exception as e:
+        print(f"Database error: {e}")
+        return {"weekly": [], "types": []}
+    
+def get_user_competitions(userId: int):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT COUNT(*) FROM "Competitions" WHERE "UserID" = %s AND "Completed" = false', (userId,))
+        count = cur.fetchone()[0]
+        cur.close()
+        conn.close()
+        return count
+    except Exception as e:
+        print(f"Database error: {e}")
+        return 0

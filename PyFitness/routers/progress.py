@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from database.db import get_workout_summary, get_workout_type_summary, get_calorie_summary
+from database.db import get_workout_summary, get_workout_type_summary, get_calorie_summary, get_workout_analysis, get_user_competitions
 import json  
 
 router = APIRouter()
@@ -16,6 +16,50 @@ async def progress(request: Request):
     calories_week = calories["this_week"]
     calories_month = calories["this_month"]
     type_data = get_workout_type_summary(userId)
+    
+    analysis = get_workout_analysis(userId)
+    competition_count = get_user_competitions(userId)
+    weekly_counts = analysis["weekly"]
+    type_counts = analysis["types"]
+    
+    score = 0
+    cardio_count = 0
+    weights_count = 0
+
+    for row in type_counts:
+        if row[0] == "cardio":
+            cardio_count = row[1]
+        elif row[0] == "weights":
+            weights_count = row[1]
+
+    avg_per_week = sum(row[1] for row in weekly_counts) / 4 if weekly_counts else 0
+
+    if avg_per_week >= 3:
+        score += 40
+    elif avg_per_week >= 2:
+        score += 25
+    elif avg_per_week >= 1:
+        score += 10
+
+    if cardio_count >= 4:
+        score += 30
+    elif cardio_count >= 2:
+        score += 15
+
+    if weights_count >= 4:
+        score += 30
+    elif weights_count >= 2:
+        score += 15
+
+    if score >= 80:
+        analysis_message = "Excellent! You are well on track for your event."
+        analysis_colour = "#3B6D11"
+    elif score >= 50:
+        analysis_message = "Good progress! Keep up the consistency."
+        analysis_colour = "#BA7517"
+    else:
+        analysis_message = "You need more training sessions to be ready for your event."
+        analysis_colour = "#A32D2D"
 
     this_week = summary["this_week"]
     this_month = summary["this_month"]
@@ -39,13 +83,27 @@ async def progress(request: Request):
     labels_json = json.dumps(weeks)
     cardio_json = json.dumps(cardio_data)
     weights_json = json.dumps(weights_data)
-    
-    cardio_data = [cardio_map.get(w, 0) for w in weeks]
-    weights_data = [weights_map.get(w, 0) for w in weeks]
-    labels_json = json.dumps(weeks)
-    cardio_json = json.dumps(cardio_data)
-    weights_json = json.dumps(weights_data)
    
+   
+    if competition_count == 0:
+        analysis_html = """
+            <div style="text-align:center; padding: 20px 0;">
+                <p style="color: var(--text-secondary);">No competition logged yet.</p>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 8px;">Log a competition to see your training readiness score.</p>
+                <a href="/competitions"><button style="margin-top: 16px;">Log a Competition</button></a>
+            </div>
+        """
+    else:
+        analysis_html = f"""
+            <div style="text-align: center; padding: 20px 0;">
+                <h3 style="font-size: 3rem; color: {analysis_colour};">{score}<span style="font-size: 1.2rem; color: var(--text-secondary);">/100</span></h3>
+                <p style="color: {analysis_colour}; font-size: 1rem; margin-top: 8px;">{analysis_message}</p>
+                <div style="background: var(--surface-raised); border-radius: 10px; height: 12px; margin-top: 16px;">
+                    <div style="background: {analysis_colour}; width: {score}%; height: 12px; border-radius: 10px;"></div>
+                </div>
+                <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px;">Based on your last 4 weeks of training</p>
+            </div>
+        """
 
     return f"""
         <html>
@@ -100,8 +158,22 @@ async def progress(request: Request):
                             <p class="stat-sub">kcal</p>
                         </div>
                     </div>
+                    
+                    <div class="chart-card">
+                        <p class="section-heading">Training Readiness</p>
+                        {analysis_html}
+                    </div>
+                  
                     <div class="chart-card">
                         <p class="section-heading">Weekly Training Breakdown</p>
+                        <div class="chart-legend">
+                            <span class="legend-cardio">Cardio</span>
+                            <span class="legend-weights">Weights</span>
+                        </div>
+                        {"<p>No workouts logged yet - add some workouts to see your progress!</p>" if len(type_data) == 0 else ""}
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                    
                         <div class="chart-legend">
                             <span class="legend-cardio">Cardio</span>
                             <span class="legend-weights">Weights</span>

@@ -69,3 +69,11 @@ def test_progress_empty_state_message(loggedInClient):
 def test_progress_page_contains_calories(loggedInClient):
     response = loggedInClient.get("/progress")
     assert "Calories" in response.text
+    
+def test_progress_page_contains_readiness(loggedInClient):
+    response = loggedInClient.get("/progress")
+    assert "Training Readiness" in response.text
+
+def test_progress_page_contains_log_competition(loggedInClient):
+    response = loggedInClient.get("/progress")
+    assert "Log a Competition" in response.text or "Training Readiness" in response.text
