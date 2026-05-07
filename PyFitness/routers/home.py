@@ -2,7 +2,7 @@ import html
 import json
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from database.db import get_workouts_by_user, get_connection, get_user_settings, get_calendar_events, delete_workout 
+from database.db import get_workouts_by_user, get_connection, get_user_settings, get_calendar_events, delete_workout, get_workout_summary, get_calorie_summary
 
 router = APIRouter()
 
@@ -53,6 +53,12 @@ async def home(request: Request):
         events_by_date[date_str].append({"name": name, "type": event_type})
     events_json = json.dumps(events_by_date)
     
+    summary = get_workout_summary(userId)
+    calories = get_calorie_summary(userId)
+    this_week = summary["this_week"]
+    this_month = summary["this_month"]
+    calories_week = calories["this_week"]
+    calories_month = calories["this_month"]
 
     return f"""
         <html>
@@ -60,6 +66,7 @@ async def home(request: Request):
                 <title>FiTrackr - Home</title>
                 <link rel="stylesheet" href="/static/main.css">
                 <link rel="stylesheet" href="/static/home.css">
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             </head>
             <body>
             <script>
@@ -83,7 +90,9 @@ async def home(request: Request):
 
                 <div class="home-wrapper">
                     <div class="home-greeting"><h3>Hi, <span>{request.session["username"]}</span></h3></div>
-                    <h2>My <span>Workouts</span></h2>
+                    <div class="home-columns">
+                        <div class="home-left">
+                            <h2>My <span>Workouts</span></h2>
 
                     <div class="search-bar">
                         <input type="text" id="searchInput" placeholder="Search workouts..." onkeyup="filterWorkouts()">
@@ -101,6 +110,22 @@ async def home(request: Request):
                     <div class="workout-scroll">
                         {workout_html}
                     </div>
+                    
+                    </div>
+                    <div class="home-right">
+                        <h2>My <span>Stats</span></h2>
+                        <div class="donut-card">
+                            <p class="stat-label">Workouts</p>
+                            <canvas id="workoutsChart"></canvas>
+                            <p class="donut-caption">{this_week} this week / {this_month} this month</p>
+                        </div>
+                        <div class="donut-card">
+                            <p class="stat-label">Calories</p>
+                            <canvas id="caloriesChart"></canvas>
+                            <p class="donut-caption">{calories_week} kcal this week / {calories_month} kcal this month</p>
+                        </div>
+                    </div>
+                </div>
 
                     <div class="calendar-section">
                         <h2>My <span>Calendar</span></h2>
@@ -242,6 +267,45 @@ async def home(request: Request):
                     }}
 
                     renderCalendar(currentYear, currentMonth);
+                    
+                    const workoutsCtx = document.getElementById('workoutsChart').getContext('2d');
+                    new Chart(workoutsCtx, {{
+                        type: 'doughnut',
+                        data: {{
+                            labels: ['This Week', 'Rest of Month'],
+                            datasets: [{{
+                                data: [{this_week}, {this_month} - {this_week}],
+                                backgroundColor: ['#EA8C55', '#4a3830'],
+                                borderWidth: 0
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            plugins: {{
+                                legend: {{ display: false }}
+                            }}
+                        }}
+                    }});
+
+                    const caloriesCtx = document.getElementById('caloriesChart').getContext('2d');
+                    new Chart(caloriesCtx, {{
+                        type: 'doughnut',
+                        data: {{
+                            labels: ['This Week', 'Rest of Month'],
+                            datasets: [{{
+                                data: [{calories_week}, {calories_month} - {calories_week}],
+                                backgroundColor: ['#C75146', '#4a3830'],
+                                borderWidth: 0
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            plugins: {{
+                                legend: {{ display: false }}
+                            }}
+                        }}
+                    }});
+                    
 
                     
                     function filterWorkouts() {{
@@ -362,6 +426,7 @@ async def workout_details(workout_id: int, request: Request):
         return JSONResponse({"error": "Unauthorized"}, status_code=403)
 
     userId = request.session["userId"]
+    
 
     settings = get_user_settings(userId)
 
