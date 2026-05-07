@@ -281,3 +281,9 @@
     text-align: center;
     margin-top: 12px;
 }
+
+.empty-state p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+}
