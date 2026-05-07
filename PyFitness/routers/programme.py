@@ -395,7 +395,7 @@ async def view_programme(request: Request, programmeId: int):
                 <form action="/programmes/complete" method="post">
                     <input type="hidden" name="programmeDayId" value="{day[0]}">
                     <input type="hidden" name="programmeId" value="{programmeId}">
-                    <button type="submit" name="action" value="quick" class="secondary">
+                    <button type="submit" name="action" value="undo" class="secondary">
                         Undo
                     </button>
                 </form>
@@ -494,19 +494,20 @@ async def complete_day(
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute(
-            'UPDATE "ProgrammeDay" SET "Completed" = TRUE, "Notes" = %s WHERE "ProgrammeDayID" = %s',
-            (notes or None, programmeDayId)
-        )
-
-        print("ROWS UPDATED:", cursor.rowcount)
+        if action == "undo":
+            cursor.execute(
+                'UPDATE "ProgrammeDay" SET "Completed" = FALSE, "Notes" = NULL, "WorkoutID" = NULL WHERE "ProgrammeDayID" = %s',
+                (programmeDayId,)
+            )
+        else:
+            cursor.execute(
+                'UPDATE "ProgrammeDay" SET "Completed" = TRUE, "Notes" = %s WHERE "ProgrammeDayID" = %s',
+                (notes or None, programmeDayId)
+            )
 
         conn.commit()
-        cursor.close()
-        conn.close()
 
         if action == "log":
-            print("REDIRECTING TO:", f"/add-workout?programmeDayId={programmeDayId}&programmeId={programmeId}&activityName={activityName}")
             return RedirectResponse(
                 url=f"/add-workout?programmeDayId={programmeDayId}&programmeId={programmeId}&activityName={quote(activityName or '')}",
                 status_code=303
@@ -516,5 +517,12 @@ async def complete_day(
 
     except Exception as e:
         print(f"Database error: {e}")
+        if conn:
+            conn.rollback()
+        return RedirectResponse(url=f"/programmes/{programmeId}?error=Failed+to+update", status_code=303)
 
-    return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
