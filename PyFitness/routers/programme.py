@@ -2,6 +2,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection
 from datetime import datetime
+from urllib.parse import quote
 
 router = APIRouter()
 
@@ -369,9 +370,8 @@ async def view_programme(request: Request, programmeId: int):
         notes_html = f'<p style="color:var(--text-secondary); font-size:0.85rem">{day[5]}</p>' if day[5] else ""
         workout_html = ''
         action_html = ''
-        if day[6]:
-            workout_html = f'<a href="/workouts/{day[6]}">View Workout</a>'
-        elif not day[4]:
+        
+        if not day[4]:
                action_html = f"""
                     <form action="/programmes/complete" method="post">
                         <input type="hidden" name="programmeDayId" value="{day[0]}">
@@ -491,38 +491,33 @@ async def complete_day(
     if "userId" not in request.session:
         return RedirectResponse(url="/login?error=Please+log+in", status_code=303)
 
+    action = (action or "").strip().lower()
+
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        if action == "quick":
-            cursor.execute(
-                'UPDATE "ProgrammeDay" SET "Completed" = NOT "Completed", "Notes" = %s WHERE "ProgrammeDayID" = %s',
-                (notes or None, programmeDayId)
-            )
-            
+        cursor.execute(
+            'UPDATE "ProgrammeDay" SET "Completed" = TRUE, "Notes" = %s WHERE "ProgrammeDayID" = %s',
+            (notes or None, programmeDayId)
+        )
 
-            conn.commit()
-            cursor.close()
-            conn.close()
+        print("ROWS UPDATED:", cursor.rowcount)
 
-            return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)
-        elif action == "log":
-            cursor.execute(
-                'UPDATE "ProgrammeDay" SET "Completed" = TRUE, "Notes" = %s WHERE "ProgrammeDayID" = %s',
-                (notes or None, programmeDayId)
-            )
-
-            conn.commit()
-            cursor.close()
-            conn.close()
-
-            return RedirectResponse(url=f"/add-workout?programmeDayId={programmeDayId}&programmeId={programmeId}&activityName={activityName}", status_code=303)
-    
-    except Exception as e:
-        print(f"Database error: {e}")
-        conn.rollback()
+        conn.commit()
         cursor.close()
         conn.close()
+
+        if action == "log":
+            print("REDIRECTING TO:", f"/add-workout?programmeDayId={programmeDayId}&programmeId={programmeId}&activityName={activityName}")
+            return RedirectResponse(
+                url=f"/add-workout?programmeDayId={programmeDayId}&programmeId={programmeId}&activityName={quote(activityName or '')}",
+                status_code=303
+            )
+
+        return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)
+
+    except Exception as e:
+        print(f"Database error: {e}")
 
     return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)

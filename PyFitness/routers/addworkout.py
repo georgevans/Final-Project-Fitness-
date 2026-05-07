@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection, get_user_settings
-import datetime
+from datetime import datetime
 
 
 router = APIRouter()
@@ -20,6 +20,8 @@ async def add_workout(request: Request, error: str = None):
     distance_unit = settings[1] if settings else "km"
 
     activityName = request.query_params.get("activityName", "")
+    programmeDayId = request.query_params.get("programmeDayId", "")
+    programmeId = request.query_params.get("programmeId", "")
 
     return f"""
         <html>
@@ -52,6 +54,8 @@ async def add_workout(request: Request, error: str = None):
                         <div class="accent-line"></div>
                         {error_html}
                         <form action="/add-workout" method="post">
+                            <input type="hidden" name="programmeDayId" value="{programmeDayId}">
+                            <input type="hidden" name="programmeId" value="{programmeId}">
                             <div class="form-group">
                                 <label>Workout Name</label>
                                 <input type="text" id="workoutName" name="workoutName" value="{activityName}" placeholder="Enter workout name" required>
@@ -188,7 +192,9 @@ async def add_workout_post(
     request: Request,
     workoutName: str = Form(...),
     workoutDate: str = Form(None),
-    workoutTime: str = Form(None)
+    workoutTime: str = Form(None),
+    programmeDayId: str = Form(None),
+    programmeId: str = Form(None)
 ):
     userId = request.session.get("userId")
 
@@ -198,9 +204,11 @@ async def add_workout_post(
     settings = get_user_settings(userId)
     weight_unit = settings[0] if settings else "kg"
     distance_unit = settings[1] if settings else "km"
-    programmeDayId = request.query_params.get("programmeDayId")
-
+        
     formData = await request.form()
+
+    if not workoutDate:
+        workoutDate = datetime.now().date()
 
     exercises = []
     i = 1
@@ -241,16 +249,6 @@ async def add_workout_post(
     if not workoutName.strip():
         return RedirectResponse(url="/add-workout?error=Workout+name+cannot+be+empty", status_code=303)
 
-    if not workoutDate or workoutDate.strip() == "":
-        workoutDate = datetime.datetime.now().date()
-    else:
-        workoutDate = datetime.datetime.strptime(workoutDate, "%Y-%m-%d").date()
-
-    if not workoutTime or workoutTime.strip() == "":
-        workoutTime = datetime.datetime.now().time()
-    else:
-        workoutTime = datetime.datetime.strptime(workoutTime, "%H:%M").time()
-
     conn = None
     cursor = None
 
@@ -263,6 +261,8 @@ async def add_workout_post(
             (userId, workoutDate, workoutName, workoutTime)
         )
         workoutId = cursor.fetchone()[0]
+
+        print(workoutId, programmeDayId)
 
         if programmeDayId:
             cursor.execute(
