@@ -127,9 +127,11 @@ async def home(request: Request):
 
                         let html = `
                             <h2>${{data.name}}</h2>
+                            ${{data.programme ? `<p><strong>Programme:</strong> ${{data.programme}}</p>` : ''}}
                             <p><strong>Date:</strong> ${{data.date}}</p>
                             <p><strong>Time:</strong> ${{data.time}}</p>
                             <hr>
+
                         `;
 
                         data.exercises.forEach(ex => {{
@@ -332,9 +334,11 @@ async def workout_details(workout_id: int, request: Request):
     cur = conn.cursor()
 
     cur.execute(
-        '''SELECT "Name", "WorkoutDate", "WorkoutTime"
-           FROM "Workout"
-           WHERE "WorkoutID" = %s''',
+        '''SELECT w."Name", w."WorkoutDate", w."WorkoutTime", p."Name"
+        FROM "Workout" w
+        LEFT JOIN "ProgrammeDay" pd ON pd."WorkoutID" = w."WorkoutID"
+        LEFT JOIN "Programme" p ON p."ProgrammeID" = pd."ProgrammeID"
+        WHERE w."WorkoutID" = %s''',
         (workout_id,)
     )
     workout = cur.fetchone()
@@ -351,6 +355,7 @@ async def workout_details(workout_id: int, request: Request):
         "name": workout[0],
         "date": str(workout[1]),
         "time": str(workout[2])[:8],
+        "programme": workout[3],
         "exercises": []
     }
 

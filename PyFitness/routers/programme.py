@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection
+from datetime import datetime
+from urllib.parse import quote
 
 router = APIRouter()
 
@@ -246,6 +248,17 @@ async def add_programme(
 
     userId = request.session["userId"]
 
+    try:
+        startDate = datetime.strptime(startDate, "%Y-%m-%d").date()
+        endDate = datetime.strptime(endDate, "%Y-%m-%d").date()
+
+        if endDate < startDate:
+            return RedirectResponse(url="/programmes?error=End+date+cannot+be+before+start+date", status_code=303)
+        
+    except Exception as e:
+        print(f"Error, {e}")
+        return RedirectResponse(url="/programmes?error=Invalid+date+format", status_code=303)
+
     if programmeType == "default":
         if not defaultName or defaultName not in DEFAULT_PROGRAMMES:
             return RedirectResponse(url="/programmes?error=Invalid+plan+selected", status_code=303)
@@ -261,6 +274,7 @@ async def add_programme(
             activity = formData.get(f"activity_{day}", "Rest")
             activity_type = formData.get(f"type_{day}", "rest")
             days.append({"day": day, "activity": activity or "Rest", "type": activity_type})
+
 
     try:
         conn = get_connection()
@@ -335,7 +349,7 @@ async def view_programme(request: Request, programmeId: int):
             return RedirectResponse(url="/programmes?error=Programme+not+found", status_code=303)
 
         cursor.execute(
-            'SELECT "ProgrammeDayID", "DayOfWeek", "ActivityName", "ActivityType", "Completed", "Notes" FROM "ProgrammeDay" WHERE "ProgrammeID" = %s ORDER BY CASE "DayOfWeek" WHEN \'Monday\' THEN 1 WHEN \'Tuesday\' THEN 2 WHEN \'Wednesday\' THEN 3 WHEN \'Thursday\' THEN 4 WHEN \'Friday\' THEN 5 WHEN \'Saturday\' THEN 6 WHEN \'Sunday\' THEN 7 END',
+            'SELECT "ProgrammeDayID", "DayOfWeek", "ActivityName", "ActivityType", "Completed", "Notes", "WorkoutID" FROM "ProgrammeDay" WHERE "ProgrammeID" = %s ORDER BY CASE "DayOfWeek" WHEN \'Monday\' THEN 1 WHEN \'Tuesday\' THEN 2 WHEN \'Wednesday\' THEN 3 WHEN \'Thursday\' THEN 4 WHEN \'Friday\' THEN 5 WHEN \'Saturday\' THEN 6 WHEN \'Sunday\' THEN 7 END',
             (programmeId,)
         )
         days = cursor.fetchall()
@@ -352,6 +366,42 @@ async def view_programme(request: Request, programmeId: int):
     for day in days:
         completed_badge = '<span style="color:var(--toasted-almond)">✓ Done</span>' if day[4] else '<span style="color:var(--text-secondary)">Not done</span>'
         notes_html = f'<p style="color:var(--text-secondary); font-size:0.85rem">{day[5]}</p>' if day[5] else ""
+        workout_html = ''
+        action_html = ''
+        
+        if not day[4]:
+               action_html = f"""
+                    <form action="/programmes/complete" method="post">
+                        <input type="hidden" name="programmeDayId" value="{day[0]}">
+                        <input type="hidden" name="programmeId" value="{programmeId}">
+                        <input type="hidden" name="activityName" value="{day[2]}">
+
+                        <input type="text" name="notes" placeholder="Optional notes" style="margin-bottom:8px">
+
+                        <div style="display:flex; gap:8px;">
+                            <button type="submit" name="action" value="quick">
+                                Quick Complete
+                            </button>
+
+                            <button type="submit" name="action" value="log">
+                                Complete & Log Workout
+                            </button>
+                        </div>
+                    </form>
+                """
+
+            
+        else:
+            action_html = f"""
+                <form action="/programmes/complete" method="post">
+                    <input type="hidden" name="programmeDayId" value="{day[0]}">
+                    <input type="hidden" name="programmeId" value="{programmeId}">
+                    <button type="submit" name="action" value="undo" class="secondary">
+                        Undo
+                    </button>
+                </form>
+            """
+                
         days_html += f"""
             <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
@@ -360,14 +410,8 @@ async def view_programme(request: Request, programmeId: int):
                     {notes_html}
                     {completed_badge}
                 </div>
-                <form action="/programmes/complete" method="post">
-                    <input type="hidden" name="programmeDayId" value="{day[0]}">
-                    <input type="hidden" name="programmeId" value="{programmeId}">
-                    <input type="text" name="notes" placeholder="Optional notes" style="margin-bottom:8px">
-                    <button type="submit" {"class='secondary'" if day[4] else ""}>
-                        {"Mark Incomplete" if day[4] else "Mark Complete"}
-                    </button>
-                </form>
+                {action_html}
+                {workout_html}
             </div>
         """
 
@@ -438,25 +482,48 @@ async def complete_day(
     request: Request,
     programmeDayId: int = Form(...),
     programmeId: int = Form(...),
-    notes: str = Form(None)
+    activityName: str = Form(None),
+    notes: str = Form(None),
+    action: str = Form(...)
 ):
     if "userId" not in request.session:
         return RedirectResponse(url="/login?error=Please+log+in", status_code=303)
 
+    action = (action or "").strip().lower()
+
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute(
-            'UPDATE "ProgrammeDay" SET "Completed" = NOT "Completed", "Notes" = %s WHERE "ProgrammeDayID" = %s',
-            (notes or None, programmeDayId)
-        )
+
+        if action == "undo":
+            cursor.execute(
+                'UPDATE "ProgrammeDay" SET "Completed" = FALSE, "Notes" = NULL, "WorkoutID" = NULL WHERE "ProgrammeDayID" = %s',
+                (programmeDayId,)
+            )
+        else:
+            cursor.execute(
+                'UPDATE "ProgrammeDay" SET "Completed" = TRUE, "Notes" = %s WHERE "ProgrammeDayID" = %s',
+                (notes or None, programmeDayId)
+            )
+
         conn.commit()
-        cursor.close()
-        conn.close()
+
+        if action == "log":
+            return RedirectResponse(
+                url=f"/add-workout?programmeDayId={programmeDayId}&programmeId={programmeId}&activityName={quote(activityName or '')}",
+                status_code=303
+            )
+
+        return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)
+
     except Exception as e:
         print(f"Database error: {e}")
-        conn.rollback()
-        cursor.close()
-        conn.close()
+        if conn:
+            conn.rollback()
+        return RedirectResponse(url=f"/programmes/{programmeId}?error=Failed+to+update", status_code=303)
 
-    return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
