@@ -111,7 +111,7 @@ def get_calendar_events(userId: int):
                SELECT gs::date::text, pd."ActivityName", 'programme' as type
                FROM "Programme" p
                JOIN "ProgrammeDay" pd ON p."ProgrammeID" = pd."ProgrammeID"
-               CROSS JOIN generate_series(p."StartDate", p."EndDate", '1 day'::interval) gs
+               CROSS JOIN generate_series(LEAST(p."StartDate", p."EndDate"), GREATEST(p."StartDate", p."EndDate"), '1 day'::interval) gs
                WHERE p."UserID" = %s
                AND TO_CHAR(gs, 'Day') ILIKE pd."DayOfWeek" || '%%' ''',
             (userId, userId, userId)
