@@ -2,7 +2,6 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection
 from datetime import datetime
-from urllib.parse import quote
 
 router = APIRouter()
 
@@ -255,6 +254,9 @@ async def add_programme(
         if endDate < startDate:
             return RedirectResponse(url="/programmes?error=End+date+cannot+be+before+start+date", status_code=303)
 
+        if startDate < datetime.now().date():
+            return RedirectResponse(url="/programmes?error=Start+date+cannot+be+before+today", status_code=303)
+
     except ValueError:
         return RedirectResponse(url="/programmes?error=Invalid+date+format", status_code=303)
 
@@ -367,8 +369,9 @@ async def view_programme(request: Request, programmeId: int):
         notes_html = f'<p style="color:var(--text-secondary); font-size:0.85rem">{day[5]}</p>' if day[5] else ""
         workout_html = ''
         action_html = ''
-        
-        if not day[4]:
+        if day[6]:
+            workout_html = f'<a href="/workouts/{day[6]}">View Workout</a>'
+        elif not day[4]:
                action_html = f"""
                     <form action="/programmes/complete" method="post">
                         <input type="hidden" name="programmeDayId" value="{day[0]}">
@@ -395,7 +398,7 @@ async def view_programme(request: Request, programmeId: int):
                 <form action="/programmes/complete" method="post">
                     <input type="hidden" name="programmeDayId" value="{day[0]}">
                     <input type="hidden" name="programmeId" value="{programmeId}">
-                    <button type="submit" name="action" value="undo" class="secondary">
+                    <button type="submit" name="action" value="quick" class="secondary">
                         Undo
                     </button>
                 </form>
@@ -488,41 +491,38 @@ async def complete_day(
     if "userId" not in request.session:
         return RedirectResponse(url="/login?error=Please+log+in", status_code=303)
 
-    action = (action or "").strip().lower()
-
     try:
         conn = get_connection()
         cursor = conn.cursor()
 
-        if action == "undo":
+        if action == "quick":
             cursor.execute(
-                'UPDATE "ProgrammeDay" SET "Completed" = FALSE, "Notes" = NULL, "WorkoutID" = NULL WHERE "ProgrammeDayID" = %s',
-                (programmeDayId,)
+                'UPDATE "ProgrammeDay" SET "Completed" = NOT "Completed", "Notes" = %s WHERE "ProgrammeDayID" = %s',
+                (notes or None, programmeDayId)
             )
-        else:
+            
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)
+        elif action == "log":
             cursor.execute(
                 'UPDATE "ProgrammeDay" SET "Completed" = TRUE, "Notes" = %s WHERE "ProgrammeDayID" = %s',
                 (notes or None, programmeDayId)
             )
 
-        conn.commit()
+            conn.commit()
+            cursor.close()
+            conn.close()
 
-        if action == "log":
-            return RedirectResponse(
-                url=f"/add-workout?programmeDayId={programmeDayId}&programmeId={programmeId}&activityName={quote(activityName or '')}",
-                status_code=303
-            )
-
-        return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)
-
+            return RedirectResponse(url=f"/add-workout?programmeDayId={programmeDayId}&programmeId={programmeId}&activityName={activityName}", status_code=303)
+    
     except Exception as e:
         print(f"Database error: {e}")
-        if conn:
-            conn.rollback()
-        return RedirectResponse(url=f"/programmes/{programmeId}?error=Failed+to+update", status_code=303)
+        conn.rollback()
+        cursor.close()
+        conn.close()
 
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+    return RedirectResponse(url=f"/programmes/{programmeId}", status_code=303)
