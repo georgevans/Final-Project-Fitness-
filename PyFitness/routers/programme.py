@@ -255,7 +255,8 @@ async def add_programme(
         if endDate < startDate:
             return RedirectResponse(url="/programmes?error=End+date+cannot+be+before+start+date", status_code=303)
         
-    except:
+    except Exception as e:
+        print("Error, {e}")
         return RedirectResponse(url="/programmes?error=Invalid+date+format", status_code=303)
 
     if programmeType == "default":
