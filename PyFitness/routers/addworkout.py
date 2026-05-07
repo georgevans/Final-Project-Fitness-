@@ -263,7 +263,6 @@ async def add_workout_post(
         workoutId = cursor.fetchone()[0]
 
         programmeDayId = request.query_params.get("programmeDayId")
-        print(workoutId, programmeDayId)
 
         if programmeDayId:
             cursor.execute(
