@@ -95,7 +95,9 @@ async def home(request: Request):
                         </select>
                     </div>
 
-                    {workout_html}
+                    <div class="workout-scroll">
+                        {workout_html}
+                    </div>
 
                     <div class="calendar-section">
                         <h2>My <span>Calendar</span></h2>
