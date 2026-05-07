@@ -19,6 +19,8 @@ async def add_workout(request: Request, error: str = None):
     weight_unit = settings[0] if settings else "kg"
     distance_unit = settings[1] if settings else "km"
 
+    activityName = request.query_params.get("activityName", "")
+
     return f"""
         <html>
             <head>
@@ -52,7 +54,7 @@ async def add_workout(request: Request, error: str = None):
                         <form action="/add-workout" method="post">
                             <div class="form-group">
                                 <label>Workout Name</label>
-                                <input type="text" id="workoutName" name="workoutName" placeholder="Enter workout name" required>
+                                <input type="text" id="workoutName" name="workoutName" value="{activityName}" placeholder="Enter workout name" required>
                             </div>
                             <div class="form-group">
                                 <label>Date</label>
@@ -196,6 +198,7 @@ async def add_workout_post(
     settings = get_user_settings(userId)
     weight_unit = settings[0] if settings else "kg"
     distance_unit = settings[1] if settings else "km"
+    programmeDayId = request.query_params.get("programmeDayId")
 
     formData = await request.form()
 
@@ -259,6 +262,16 @@ async def add_workout_post(
             (userId, workoutDate, workoutName, workoutTime)
         )
         workoutId = cursor.fetchone()[0]
+
+        if programmeDayId:
+            cursor.execute(
+                '''
+                UPDATE "ProgrammeDay"
+                SET "WorkoutID" = %s
+                WHERE "ProgrammeDayID" = %s
+                ''',
+                (workoutId, programmeDayId)
+            )
 
         for exercise in exercises:
             if exercise["type"] == "weights":
