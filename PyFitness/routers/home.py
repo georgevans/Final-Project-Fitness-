@@ -16,7 +16,7 @@ async def home(request: Request):
 
     workout_html = ""
 
-    if len(workouts) == 0:
+    if not workouts or len(workouts) == 0:
         workout_html = """
             <div class="empty-state">
                 <p>No workouts logged yet!</p>
@@ -33,6 +33,7 @@ async def home(request: Request):
                 <div class="workout-card" onclick="openWorkout({workout[0]})">
                     <h3>Workout {i + 1}</h3>
                     <h5>Title: {title}</h5>
+                    {f"<p class='programme'>Programme: {workout[4]}</p>" if workout[4] else ""}
                     <p data-date="{workout[2]}"><strong>Date:</strong> {workout[2]}</p>
                     <p><strong>Time:</strong> {str(workout[3])[:8]}</p>
                     <form action="/delete-workout" method="post" onclick="event.stopPropagation()" onsubmit="return confirm('Are you sure you want to delete this workout?')">
@@ -92,6 +93,8 @@ async def home(request: Request):
                             <option value="za">Sort: Z to A</option>
                             <option value="newest">Sort: Newest First</option>
                             <option value="oldest">Sort: Oldest First</option>
+                            <option value="programme-az">Sort: Programme: A to Z</option>
+                            <option value="programme-za">Sort: Programme: Z to A</option>
                         </select>
                     </div>
 
@@ -238,17 +241,27 @@ async def home(request: Request):
 
                     renderCalendar(currentYear, currentMonth);
 
+                    
                     function filterWorkouts() {{
                         const input = document.getElementById('searchInput').value.toLowerCase();
                         const cards = document.querySelectorAll('.workout-card');
-                        for (let i = 0; i < cards.length; i++) {{
-                            const title = cards[i].querySelector('h5').textContent.toLowerCase();
-                            if (title.includes(input)) {{
-                                cards[i].style.display = 'block';
-                            }} else {{
-                                cards[i].style.display = 'none';
+
+                        cards.forEach(card => {{
+                            const title = card.querySelector('h5').textContent.toLowerCase();
+
+                            const programmeEl = card.querySelector('.programme');
+                            const programme = programmeEl 
+                                ? programmeEl.textContent.toLowerCase().replace("programme:", "").trim()
+                                : "";
+
+                            if (!programme) {{
+                                card.style.display = "none";
+                                return;
                             }}
-                        }}
+
+                            const match = title.includes(input) || programme.includes(input);
+                            card.style.display = match ? "block" : "none";
+                        }});
                     }}
 
                     function sortWorkouts() {{
@@ -261,11 +274,28 @@ async def home(request: Request):
                             const titleB = b.querySelector('h5').textContent.toLowerCase();
                             const dateA = new Date(a.querySelector('[data-date]').dataset.date);
                             const dateB = new Date(b.querySelector('[data-date]').dataset.date);
+                            
+                            const getProgramme = (card) => {{
+                                const ps = card.querySelectorAll('p');
+                                for(let p of ps) {{
+                                    if (p.textContent.toLowerCase().includes("programme:")) {{
+                                        return p.textContent.replace("Programme:", "").trim().toLowerCase();
+                                    }}
+                                }}
+                                return "";
+                            }}
+
+                            const progA = getProgramme(a);
+                            const progB = getProgramme(b);
 
                             if (sort === 'az') return titleA.localeCompare(titleB);
                             if (sort === 'za') return titleB.localeCompare(titleA);
+
                             if (sort === 'newest') return dateB - dateA;
                             if (sort === 'oldest') return dateA - dateB;
+
+                            if (sort === 'programme-az') return progA.localeCompare(progB);
+                            if (sort === 'programme-za') return progB.localeCompare(progA);
 
                             return 0;
                         }});
