@@ -54,7 +54,7 @@ async def programmes(request: Request, error: str = None, success: str = None):
 
     userId = request.session["userId"]
     error_html = f'<div class="error">{error}</div>' if error else ""
-    success_html = f'<div class="success">{success}</div>' if success else ""
+    success_html = f'<div class="success" role="alert">&#10003; {success}</div>' if success else ""
 
     # fetch user's programmes
     try:

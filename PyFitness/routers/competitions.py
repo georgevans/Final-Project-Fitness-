@@ -8,8 +8,9 @@ router = APIRouter()
 
 
 @router.get("/competitions", response_class=HTMLResponse)
-async def competitions(request: Request, error: str = None):
-    error_html = f'<p style="color:red;">{error}</p>' if error else ""
+async def competitions(request: Request, error: str = None, success: str = None):
+    error_html = f'<div class="error" role="alert">{error}</div>' if error else ""
+    success_html = f'<div class="success" role="alert">&#10003; {success}</div>' if success else ""
 
     # Authentication check
     if "userId" not in request.session:
@@ -256,8 +257,6 @@ async def competitions(request: Request, error: str = None):
                     </nav>
 
                 <div class="workout-wrapper">
-                    {error_html}
-
                     <div class="competition-page">
                         <h2>Upcoming Competitions</h2>
 
@@ -270,6 +269,9 @@ async def competitions(request: Request, error: str = None):
                                 <button type="submit">Save Competitions</button>
                             </div>
                         </form>
+
+                        {error_html}
+                        {success_html}
 
                         <table>
                             <thead>
@@ -665,7 +667,7 @@ async def add_competition_post(request: Request):
             status_code=303
         )
 
-    return RedirectResponse(url="/competitions", status_code=303)
+    return RedirectResponse(url="/competitions?success=Competition+added+successfully", status_code=303)
 
 
 @router.post("/complete-competition")
@@ -725,4 +727,4 @@ async def complete_competition_post(
             status_code=303
         )
 
-    return RedirectResponse(url="/competitions", status_code=303)
+    return RedirectResponse(url="/competitions?success=Competition+completed", status_code=303)
