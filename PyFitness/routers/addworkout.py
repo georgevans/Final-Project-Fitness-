@@ -8,7 +8,7 @@ router = APIRouter()
 
 @router.get("/add-workout", response_class=HTMLResponse)
 async def add_workout(request: Request, error: str = None):
-    error_html = f'<p style="color:red;">{error}</p>' if error else ""
+    error_html = f'<div class="error" role="alert">{error}</div>' if error else ""
 
     userId = request.session.get("userId")  
     
@@ -24,7 +24,7 @@ async def add_workout(request: Request, error: str = None):
     programmeId = request.query_params.get("programmeId", "")
 
     return f"""
-        <html>
+        <html lang="en">
             <head>
                 <title>Add Workout</title>
                 <link rel="stylesheet" href="/static/main.css">
@@ -36,6 +36,7 @@ async def add_workout(request: Request, error: str = None):
                     document.body.classList.add('light-mode');
                 }}
             </script>
+                <a class="skip-link" href="#main-content">Skip to main content</a>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
@@ -49,7 +50,7 @@ async def add_workout(request: Request, error: str = None):
                         <a href="/logout" class="nav-btn">Logout</a>
                     </div>
                 </nav>
-                <div class="workout-wrapper">
+                <div class="workout-wrapper" id="main-content">
                     <div class="workout-card">
                         <div class="accent-line"></div>
                         {error_html}
@@ -89,41 +90,41 @@ async def add_workout(request: Request, error: str = None):
                         exercise.style = "border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;";
                         exercise.innerHTML = `
                             <h3 id="exerciseTitle_${{exerciseCount}}">Exercise ${{exerciseCount}}</h3>
-                            <label>Type</label><br>
-                            <select name="workoutType_${{exerciseCount}}" onchange="handleTypeChange(this.value, ${{exerciseCount}})">
+                            <label for="workoutType_${{exerciseCount}}">Type</label><br>
+                            <select id="workoutType_${{exerciseCount}}" name="workoutType_${{exerciseCount}}" onchange="handleTypeChange(this.value, ${{exerciseCount}})">
                                 <option value="">Select type</option>
                                 <option value="cardio">Cardio</option>
                                 <option value="weights">Weights</option>
                             </select><br><br>
 
                             <div id="cardioFields_${{exerciseCount}}" style="display:none">
-                                <label>Cardio Type</label><br>
-                                <select name="cardioType_${{exerciseCount}}" onchange="handleCardioTypeChange(this.value, ${{exerciseCount}})">
+                                <label for="cardioType_${{exerciseCount}}">Cardio Type</label><br>
+                                <select id="cardioType_${{exerciseCount}}" name="cardioType_${{exerciseCount}}" onchange="handleCardioTypeChange(this.value, ${{exerciseCount}})">
                                     <option value="">Select cardio type</option>
                                     <option value="Run">Run</option>
                                     <option value="Cycle">Cycle</option>
                                     <option value="Swim">Swim</option>
                                 </select><br><br>
 
-                                <label>Exercise Name</label><br>
-                                <input type="text" name="exerciseName_${{exerciseCount}}" placeholder="e.g. Running"><br><br>
+                                <label for="exerciseName_${{exerciseCount}}">Exercise Name</label><br>
+                                <input type="text" id="exerciseName_${{exerciseCount}}" name="exerciseName_${{exerciseCount}}" placeholder="e.g. Running"><br><br>
 
-                                <label>Duration (minutes)</label><br>
-                                <input type="number" name="duration_${{exerciseCount}}" min="0" placeholder="Enter duration"><br><br>
+                                <label for="duration_${{exerciseCount}}">Duration (minutes)</label><br>
+                                <input type="number" id="duration_${{exerciseCount}}" name="duration_${{exerciseCount}}" min="0" placeholder="Enter duration"><br><br>
 
-                                <label>Distance ({distance_unit})</label><br>
-                                <input type="number" name="distance_${{exerciseCount}}" min="0" placeholder="Enter distance" step="0.1"><br><br>
+                                <label for="distance_${{exerciseCount}}">Distance ({distance_unit})</label><br>
+                                <input type="number" id="distance_${{exerciseCount}}" name="distance_${{exerciseCount}}" min="0" placeholder="Enter distance" step="0.1"><br><br>
 
-                                <label>Calories Burned</label><br>
-                                <input type="number" name="calories_${{exerciseCount}}" min="0" placeholder="Enter calories"><br><br>
+                                <label for="calories_${{exerciseCount}}">Calories Burned</label><br>
+                                <input type="number" id="calories_${{exerciseCount}}" name="calories_${{exerciseCount}}" min="0" placeholder="Enter calories"><br><br>
                             </div>
 
                             <div id="weightFields_${{exerciseCount}}" style="display:none">
-                                <label>Exercise Name</label><br>
-                                <input type="text" name="weightExerciseName_${{exerciseCount}}" placeholder="e.g. Bench Press"><br><br>
+                                <label for="weightExerciseName_${{exerciseCount}}">Exercise Name</label><br>
+                                <input type="text" id="weightExerciseName_${{exerciseCount}}" name="weightExerciseName_${{exerciseCount}}" placeholder="e.g. Bench Press"><br><br>
 
-                                <label>Difficulty (1-5)</label><br>
-                                <input type="number" name="difficulty_${{exerciseCount}}" placeholder="Enter difficulty" min="1" max="5"><br><br>
+                                <label for="difficulty_${{exerciseCount}}">Difficulty (1-5)</label><br>
+                                <input type="number" id="difficulty_${{exerciseCount}}" name="difficulty_${{exerciseCount}}" placeholder="Enter difficulty" min="1" max="5"><br><br>
 
                                 <div id="setList_${{exerciseCount}}">
                                 </div>
@@ -168,10 +169,10 @@ async def add_workout(request: Request, error: str = None):
                         setDiv.style = "border: 1px solid #555; padding: 8px; margin-bottom: 8px;";
                         setDiv.innerHTML = `
                             <strong>Set ${{setCount}}</strong><br><br>
-                            <label>Reps</label><br>
-                            <input type="number" name="reps_${{exerciseId}}_${{setCount}}" placeholder="Enter reps"><br><br>
-                            <label>Weight ({weight_unit})</label><br>
-                            <input type="number" name="weight_${{exerciseId}}_${{setCount}}" placeholder="Enter weight" step="0.5"><br><br>
+                            <label for="reps_${{exerciseId}}_${{setCount}}">Reps</label><br>
+                            <input type="number" id="reps_${{exerciseId}}_${{setCount}}" name="reps_${{exerciseId}}_${{setCount}}" placeholder="Enter reps"><br><br>
+                            <label for="weight_${{exerciseId}}_${{setCount}}">Weight ({weight_unit})</label><br>
+                            <input type="number" id="weight_${{exerciseId}}_${{setCount}}" name="weight_${{exerciseId}}_${{setCount}}" placeholder="Enter weight" step="0.5"><br><br>
                             <button type="button" onclick="removeSet(${{exerciseId}}, ${{setCount}})">Remove Set</button>
                         `;
                         setList.appendChild(setDiv);

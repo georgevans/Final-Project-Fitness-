@@ -106,7 +106,7 @@ async def progress(request: Request):
         """
 
     return f"""
-        <html>
+        <html lang="en">
             <head>
                 <title>FiTrackr - Progress</title>
                 <link rel="stylesheet" href="/static/main.css">
@@ -119,6 +119,7 @@ async def progress(request: Request):
                     document.body.classList.add('light-mode');
                 }}
             </script>
+                <a class="skip-link" href="#main-content">Skip to main content</a>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
@@ -132,7 +133,7 @@ async def progress(request: Request):
                         <a href="/logout" class="logout">Logout</a>
                     </div>
                 </nav>
-                <div class="progress-wrapper">
+                <div class="progress-wrapper" id="main-content">
                     <div class="progress-greeting">
                         <h3>Your <span>Progress</span></h3>
                     </div>

@@ -109,7 +109,7 @@ async def programmes(request: Request, error: str = None, success: str = None):
     """ for day in DAYS_OF_WEEK])
 
     return f"""
-        <html>
+        <html lang="en">
             <head>
                 <title>Programmes</title>
                 <link rel="stylesheet" href="/static/main.css">
@@ -120,6 +120,7 @@ async def programmes(request: Request, error: str = None, success: str = None):
                     document.body.classList.add('light-mode');
                 }}
             </script>
+                <a class="skip-link" href="#main-content">Skip to main content</a>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
@@ -134,7 +135,7 @@ async def programmes(request: Request, error: str = None, success: str = None):
                     </div>
                 </nav>
 
-                <div style="max-width:700px; margin: 40px auto; padding: 0 20px;">
+                <div id="main-content" style="max-width:700px; margin: 40px auto; padding: 0 20px;">
                     <h1>Training <span style="color:var(--toasted-almond)">Programmes</span></h1>
                     {error_html}
                     {success_html}
@@ -418,12 +419,13 @@ async def view_programme(request: Request, programmeId: int):
         """
 
     return f"""
-        <html>
+        <html lang="en">
             <head>
                 <title>{programme[0]}</title>
                 <link rel="stylesheet" href="/static/main.css">
             </head>
             <body>
+                <a class="skip-link" href="#main-content">Skip to main content</a>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
@@ -437,7 +439,7 @@ async def view_programme(request: Request, programmeId: int):
                         <a href="/logout" class="logout">Logout</a>
                     </div>
                 </nav>
-                <div style="max-width:700px; margin: 40px auto; padding: 0 20px;">
+                <div id="main-content" style="max-width:700px; margin: 40px auto; padding: 0 20px;">
                     <a href="/programmes" style="color:var(--text-secondary); font-size:0.85rem">← Back to Programmes</a>
                     <h1 style="margin-top:16px">{programme[0]}</h1>
                     <p>Start: {programme[1]} &nbsp;|&nbsp; End: {programme[2]}</p>

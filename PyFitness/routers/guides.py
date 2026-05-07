@@ -102,7 +102,7 @@ async def guides(request: Request):
     ])
 
     return f"""
-    <html>
+    <html lang="en">
         <head>
             <title>FiTrackr - Guides</title>
             <link rel="stylesheet" href="/static/main.css">
