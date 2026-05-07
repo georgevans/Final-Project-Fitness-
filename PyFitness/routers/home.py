@@ -271,6 +271,38 @@ async def home(request: Request):
                             grid.appendChild(cards[i]);
                         }}
                     }}
+                    
+                    window.onload = function () {{
+                        const params = new URLSearchParams(window.location.search);
+                        if (params.get("success") === "1") {{
+                            showToast("Workout added successfully ");
+                        }}
+                        if (params.get("deleted") === "1") {{
+                            showToast("Workout deleted successfully ");
+                        }}
+                    }}
+
+                    function showToast(message) {{
+                        const toast = document.createElement("div");
+                        toast.innerText = message;
+                        toast.style.position = "fixed";
+                        toast.style.top = "80px";
+                        toast.style.left = "50%";
+                        toast.style.transform = "translateX(-50%)";
+                        toast.style.background = "#2a2224";
+                        toast.style.color = "#f0e8e0";
+                        toast.style.padding = "12px 18px";
+                        toast.style.borderRadius = "8px";
+                        toast.style.border = "1px solid rgba(234, 140, 85, 0.3)";
+                        toast.style.boxShadow = "0 8px 20px rgba(0,0,0,0.4)";
+                        toast.style.zIndex = "9999";
+                        toast.style.fontSize = "0.9rem";
+                        document.body.appendChild(toast);
+                        setTimeout(() => {{
+                            toast.remove();
+                        }}, 2500);
+                    }}
+                    
                 </script>
             </body>
         </html>
@@ -282,7 +314,7 @@ async def delete_workout_post(request: Request, workoutId: int = Form(...)):
         return RedirectResponse(url="/login?error=Must+be+logged+in", status_code=303)
     userId = request.session["userId"]
     delete_workout(workoutId, userId)
-    return RedirectResponse(url="/home", status_code=303)
+    return RedirectResponse(url="/home?deleted=1", status_code=303)
 
 
 @router.get("/workout-details/{workout_id}")

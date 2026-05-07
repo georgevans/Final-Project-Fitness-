@@ -329,4 +329,4 @@ async def add_workout_post(
         if conn:
             conn.close()
 
-    return RedirectResponse(url="/home", status_code=303)
+    return RedirectResponse(url="/home?success=1", status_code=303)

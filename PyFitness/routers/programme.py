@@ -196,6 +196,36 @@ async def programmes(request: Request, error: str = None, success: str = None):
                         </form>
                     </div>
                 </div>
+                
+                <script>
+                    window.onload = function () {{
+                        const params = new URLSearchParams(window.location.search);
+                        if (params.get("success")) {{
+                            showToast(params.get("success"));
+                        }}
+                    }}
+
+                    function showToast(message) {{
+                        const toast = document.createElement("div");
+                        toast.innerText = message;
+                        toast.style.position = "fixed";
+                        toast.style.top = "80px";
+                        toast.style.left = "50%";
+                        toast.style.transform = "translateX(-50%)";
+                        toast.style.background = "#2a2224";
+                        toast.style.color = "#f0e8e0";
+                        toast.style.padding = "12px 18px";
+                        toast.style.borderRadius = "8px";
+                        toast.style.border = "1px solid rgba(234, 140, 85, 0.3)";
+                        toast.style.boxShadow = "0 8px 20px rgba(0,0,0,0.4)";
+                        toast.style.zIndex = "9999";
+                        toast.style.fontSize = "0.9rem";
+                        document.body.appendChild(toast);
+                        setTimeout(() => {{
+                            toast.remove();
+                        }}, 2500);
+                    }}
+                </script>
             </body>
         </html>
     """
@@ -284,7 +314,7 @@ async def delete_programme(request: Request, programmeId: int = Form(...)):
         conn.close()
         return RedirectResponse(url="/programmes?error=Failed+to+delete+programme", status_code=303)
 
-    return RedirectResponse(url="/programmes?success=Programme+deleted", status_code=303)
+    return RedirectResponse(url="/programmes?success=Programme+deleted!", status_code=303)
 
 
 @router.get("/programmes/{programmeId}", response_class=HTMLResponse)
@@ -370,6 +400,35 @@ async def view_programme(request: Request, programmeId: int):
                     <h2>Weekly Schedule</h2>
                     {days_html}
                 </div>
+                <script>
+                    window.onload = function () {{
+                        const params = new URLSearchParams(window.location.search);
+                        if (params.get("success")) {{
+                            showToast(params.get("success"));
+                        }}
+                    }}
+
+                    function showToast(message) {{
+                        const toast = document.createElement("div");
+                        toast.innerText = message;
+                        toast.style.position = "fixed";
+                        toast.style.top = "80px";
+                        toast.style.left = "50%";
+                        toast.style.transform = "translateX(-50%)";
+                        toast.style.background = "#2a2224";
+                        toast.style.color = "#f0e8e0";
+                        toast.style.padding = "12px 18px";
+                        toast.style.borderRadius = "8px";
+                        toast.style.border = "1px solid rgba(234, 140, 85, 0.3)";
+                        toast.style.boxShadow = "0 8px 20px rgba(0,0,0,0.4)";
+                        toast.style.zIndex = "9999";
+                        toast.style.fontSize = "0.9rem";
+                        document.body.appendChild(toast);
+                        setTimeout(() => {{
+                            toast.remove();
+                        }}, 2500);
+                    }}
+                </script>
             </body>
         </html>
     """
