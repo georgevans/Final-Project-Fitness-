@@ -229,7 +229,7 @@ async def competitions(request: Request, error: str = None, success: str = None)
     chart_data_json = json.dumps(chart_data)
 
     return f"""
-        <html>
+        <html lang="en">
             <head>
                 <title>Competitions</title>
                 <link rel="stylesheet" href="/static/main.css">
@@ -242,6 +242,7 @@ async def competitions(request: Request, error: str = None, success: str = None)
                     document.body.classList.add('light-mode');
                 }}
             </script>
+                <a class="skip-link" href="#main-content">Skip to main content</a>
                     <nav class="navbar">
                         <a href="/home" class="navbar-brand">FiTrackr</a>
                         <div class="navbar-links">
@@ -256,7 +257,7 @@ async def competitions(request: Request, error: str = None, success: str = None)
                         </div>
                     </nav>
 
-                <div class="workout-wrapper">
+                <div class="workout-wrapper" id="main-content">
                     <div class="competition-page">
                         <h2>Upcoming Competitions</h2>
 
@@ -295,7 +296,7 @@ async def competitions(request: Request, error: str = None, success: str = None)
                                 <span id="chartWindowLabel" style="font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:0.05em;"></span>
                                 <button type="button" onclick="shiftWindow(1)">&#8250;</button>
                             </div>
-                            <canvas id="paceChart"></canvas>
+                            <canvas id="paceChart" role="img" aria-label="Cardio pace trends chart showing Run, Cycle and Swim pace over time"></canvas>
                         </div>
                     </div>
 

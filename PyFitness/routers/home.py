@@ -30,7 +30,7 @@ async def home(request: Request):
             title = html.escape(workout[1])
 
             workout_html += f"""
-                <div class="workout-card" onclick="openWorkout({workout[0]})">
+                <div class="workout-card" onclick="openWorkout({workout[0]})" tabindex="0" role="button" aria-label="View workout {title}" onkeydown="if(event.key==='Enter'||event.key===' ')openWorkout({workout[0]})">
                     <h3>Workout {i + 1}</h3>
                     <h5>Title: {title}</h5>
                     {f"<p class='programme'>Programme: {workout[4]}</p>" if workout[4] else ""}
@@ -55,7 +55,7 @@ async def home(request: Request):
     
 
     return f"""
-        <html>
+        <html lang="en">
             <head>
                 <title>FiTrackr - Home</title>
                 <link rel="stylesheet" href="/static/main.css">
@@ -67,6 +67,7 @@ async def home(request: Request):
                     document.body.classList.add('light-mode');
                 }}
             </script>
+                <a class="skip-link" href="#main-content">Skip to main content</a>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
@@ -81,7 +82,7 @@ async def home(request: Request):
                     </div>
                 </nav>
 
-                <div class="home-wrapper">
+                <div class="home-wrapper" id="main-content">
                     <div class="home-greeting"><h3>Hi, <span>{request.session["username"]}</span></h3></div>
                     <h2>My <span>Workouts</span></h2>
 
@@ -118,9 +119,9 @@ async def home(request: Request):
                     </div>
                 </div>
 
-                <div id="workoutModal" class="modal" style="display:none;">
+                <div id="workoutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display:none;">
                     <div class="modal-content">
-                        <span onclick="closeModal()" class="close">&times;</span>
+                        <span onclick="closeModal()" class="close" role="button" tabindex="0" aria-label="Close">&times;</span>
                         <div id="modalBody"></div>
                     </div>
                 </div>
@@ -161,11 +162,16 @@ async def home(request: Request):
 
                         document.getElementById("modalBody").innerHTML = html;
                         document.getElementById("workoutModal").style.display = "flex";
+                        document.querySelector("#workoutModal .close").focus();
                     }}
 
                     function closeModal() {{
                         document.getElementById("workoutModal").style.display = "none";
                     }}
+
+                    document.addEventListener('keydown', function(e) {{
+                        if (e.key === 'Escape') closeModal();
+                    }});
 
                     const events = {events_json};
                     let currentYear = new Date().getFullYear();

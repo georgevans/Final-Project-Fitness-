@@ -9,9 +9,9 @@ router = APIRouter()
 
 @router.get("/signup", response_class=HTMLResponse)
 async def signup(error: str = None):
-    error_html = f'<div class="error">{error}</div>' if error else ""
+    error_html = f'<div class="error" role="alert">{error}</div>' if error else ""
     return f"""
-        <html>
+        <html lang="en">
             <head>
                 <title>Sign Up</title>
                 <link rel="stylesheet" href="/static/main.css">
@@ -31,20 +31,20 @@ async def signup(error: str = None):
                         {error_html}
                         <form action="/signup" method="post">
                             <div class="form-group">
-                                <label>Username</label>
-                                <input type="text" name="username" placeholder="Enter username" required>
+                                <label for="signup-username">Username</label>
+                                <input type="text" id="signup-username" name="username" placeholder="Enter username" required>
                             </div>
                             <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" name="email" placeholder="Enter email" required>
+                                <label for="signup-email">Email</label>
+                                <input type="email" id="signup-email" name="email" placeholder="Enter email" required>
                             </div>
                             <div class="form-group">
-                                <label>Password</label>
-                                <input type="password" name="password" placeholder="Enter password" required>
+                                <label for="signup-password">Password</label>
+                                <input type="password" id="signup-password" name="password" placeholder="Enter password" required>
                             </div>
                             <div class="form-group">
-                                <label>Confirm Password</label>
-                                <input type="password" name="confirmPassword" placeholder="Confirm password" required>
+                                <label for="signup-confirm">Confirm Password</label>
+                                <input type="password" id="signup-confirm" name="confirmPassword" placeholder="Confirm password" required>
                             </div>
                             <button type="submit" class="signup-btn">Create Account</button>
                         </form>
