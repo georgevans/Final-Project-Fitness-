@@ -140,7 +140,7 @@ async def competitions(request: Request, error: str = None):
         try:
             cursor.execute(
                 '''
-                SELECT ROW_NUMBER() OVER (PARTITION BY c."CardioType" ORDER BY c."CardioDate" ASC) as exercise_num, c."CardioType", c."Distance", c."Duration"
+                SELECT c."CardioDate"::text, c."CardioType", c."Distance", c."Duration"
                 FROM "Cardio" c
                 JOIN "Exercise" e ON c."ExerciseID" = e."ExerciseID"
                 JOIN "Workout" w ON e."WorkoutID" = w."WorkoutID"
@@ -151,7 +151,6 @@ async def competitions(request: Request, error: str = None):
             )
             cardio_data = cursor.fetchall()
         except Exception:
-            # CardioType column doesn't exist, skip pace chart
             cardio_data = []
 
         cursor.close()
@@ -177,26 +176,30 @@ async def competitions(request: Request, error: str = None):
         """
         cardio_data = []
 
-    # format cardio data for chart (calculate pace and handle missing/invalid data)
-    cardio_dict = {}
-    for exercise_num, cardio_type, distance, duration in cardio_data:
+    pace_accumulator = {}
+    for cardio_date, cardio_type, distance, duration in cardio_data:
         try:
             distance_float = float(distance) if distance else 0
             duration_float = float(duration) if duration else 0
             if distance_float > 0 and duration_float > 0:
                 pace = duration_float / distance_float
-                if exercise_num not in cardio_dict:
-                    cardio_dict[exercise_num] = {"Run": None, "Cycle": None, "Swim": None}
-                cardio_dict[exercise_num][cardio_type] = round(pace, 2)
+                if cardio_date not in pace_accumulator:
+                    pace_accumulator[cardio_date] = {"Run": [], "Cycle": [], "Swim": []}
+                if cardio_type in pace_accumulator[cardio_date]:
+                    pace_accumulator[cardio_date][cardio_type].append(pace)
         except (ValueError, TypeError):
             continue
 
-    sorted_exercises = sorted(cardio_dict.keys())
+    sorted_dates = sorted(pace_accumulator.keys())
+
+    def avg_pace(values):
+        return round(sum(values) / len(values), 2) if values else None
+
     chart_data = {
-        "exercise_numbers": sorted_exercises,
-        "Run": [cardio_dict[e].get("Run") for e in sorted_exercises],
-        "Cycle": [cardio_dict[e].get("Cycle") for e in sorted_exercises],
-        "Swim": [cardio_dict[e].get("Swim") for e in sorted_exercises]
+        "dates": sorted_dates,
+        "Run": [avg_pace(pace_accumulator[d]["Run"]) for d in sorted_dates],
+        "Cycle": [avg_pace(pace_accumulator[d]["Cycle"]) for d in sorted_dates],
+        "Swim": [avg_pace(pace_accumulator[d]["Swim"]) for d in sorted_dates]
     }
 
     # Show message if no competitions or completed competitions
@@ -285,6 +288,11 @@ async def competitions(request: Request, error: str = None):
 
                         <div class="section-card" style="margin-top: 20px;">
                             <h3>Cardio Pace Trends</h3>
+                            <div style="display:flex; align-items:center; gap:16px; margin-bottom:12px;">
+                                <button type="button" onclick="shiftWindow(-1)">&#8249;</button>
+                                <span id="chartWindowLabel" style="font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:0.05em;"></span>
+                                <button type="button" onclick="shiftWindow(1)">&#8250;</button>
+                            </div>
                             <canvas id="paceChart"></canvas>
                         </div>
                     </div>
@@ -421,20 +429,61 @@ async def competitions(request: Request, error: str = None):
                         }}
                     }}
 
-                    //pace chart
                     const chartData = {chart_data_json};
-                    if (chartData.exercise_numbers && chartData.exercise_numbers.length > 0) {{
+                    const WINDOW_MONTHS = 3;
+                    let windowOffset = 0;
+                    let paceChart = null;
+
+                    function parseLocalDate(str) {{
+                        const [y, m, d] = str.split('-').map(Number);
+                        return new Date(y, m - 1, d);
+                    }}
+
+                    function getWindowBounds(offset) {{
+                        const now = new Date();
+                        const end = new Date(now.getFullYear(), now.getMonth() - offset * WINDOW_MONTHS + 1, 0);
+                        const start = new Date(end.getFullYear(), end.getMonth() - WINDOW_MONTHS + 1, 1);
+                        return {{ start, end }};
+                    }}
+
+                    function filterWindow(offset) {{
+                        const {{ start, end }} = getWindowBounds(offset);
+                        const indices = chartData.dates.reduce((acc, d, i) => {{
+                            const date = parseLocalDate(d);
+                            if (date >= start && date <= end) acc.push(i);
+                            return acc;
+                        }}, []);
+                        return {{
+                            labels: indices.map(i => chartData.dates[i]),
+                            Run: indices.map(i => chartData.Run[i]),
+                            Cycle: indices.map(i => chartData.Cycle[i]),
+                            Swim: indices.map(i => chartData.Swim[i])
+                        }};
+                    }}
+
+                    function updateLabel(offset) {{
+                        const {{ start, end }} = getWindowBounds(offset);
+                        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                        document.getElementById('chartWindowLabel').textContent =
+                            months[start.getMonth()] + ' ' + start.getFullYear() + ' – ' +
+                            months[end.getMonth()] + ' ' + end.getFullYear();
+                    }}
+
+                    function renderChart(offset) {{
+                        const filtered = filterWindow(offset);
+                        updateLabel(offset);
+                        if (paceChart) paceChart.destroy();
                         const ctx = document.getElementById('paceChart').getContext('2d');
-                        new Chart(ctx, {{
+                        paceChart = new Chart(ctx, {{
                             type: 'line',
                             data: {{
-                                labels: chartData.exercise_numbers.map(n => 'Exercise ' + n),
+                                labels: filtered.labels,
                                 datasets: [
                                     {{
                                         label: 'Run',
-                                        data: chartData.Run,
+                                        data: filtered.Run,
                                         borderColor: '#FF6B6B',
-                                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                                        backgroundColor: 'rgba(255,107,107,0.1)',
                                         borderWidth: 2,
                                         fill: false,
                                         tension: 0.1,
@@ -442,9 +491,9 @@ async def competitions(request: Request, error: str = None):
                                     }},
                                     {{
                                         label: 'Cycle',
-                                        data: chartData.Cycle,
+                                        data: filtered.Cycle,
                                         borderColor: '#4ECDC4',
-                                        backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                                        backgroundColor: 'rgba(78,205,196,0.1)',
                                         borderWidth: 2,
                                         fill: false,
                                         tension: 0.1,
@@ -452,9 +501,9 @@ async def competitions(request: Request, error: str = None):
                                     }},
                                     {{
                                         label: 'Swim',
-                                        data: chartData.Swim,
+                                        data: filtered.Swim,
                                         borderColor: '#45B7D1',
-                                        backgroundColor: 'rgba(69, 183, 209, 0.1)',
+                                        backgroundColor: 'rgba(69,183,209,0.1)',
                                         borderWidth: 2,
                                         fill: false,
                                         tension: 0.1,
@@ -464,28 +513,23 @@ async def competitions(request: Request, error: str = None):
                             }},
                             options: {{
                                 responsive: true,
-                                plugins: {{
-                                    legend: {{
-                                        display: true,
-                                        position: 'top'
-                                    }}
-                                }},
+                                plugins: {{ legend: {{ display: true, position: 'top' }} }},
                                 scales: {{
-                                    y: {{
-                                        title: {{
-                                            display: true,
-                                            text: 'Pace (mins/km)'
-                                        }}
-                                    }},
-                                    x: {{
-                                        title: {{
-                                            display: true,
-                                            text: 'Exercise Number'
-                                        }}
-                                    }}
+                                    y: {{ title: {{ display: true, text: 'Pace (mins/km)' }} }},
+                                    x: {{ title: {{ display: true, text: 'Date' }}, ticks: {{ maxTicksLimit: 8 }} }}
                                 }}
                             }}
                         }});
+                    }}
+
+                    function shiftWindow(direction) {{
+                        windowOffset -= direction;
+                        if (windowOffset < 0) windowOffset = 0;
+                        renderChart(windowOffset);
+                    }}
+
+                    if (chartData.dates && chartData.dates.length > 0) {{
+                        renderChart(windowOffset);
                     }}
                 </script>
             </body>

@@ -158,11 +158,11 @@ async def programmes(request: Request, error: str = None, success: str = None):
                             </div>
                             <div class="form-group">
                                 <label>Start Date</label>
-                                <input type="date" name="startDate" required>
+                                <input type="date" name="startDate" id="defaultStartDate" required onchange="document.getElementById('defaultEndDate').min = this.value">
                             </div>
                             <div class="form-group">
                                 <label>End Date</label>
-                                <input type="date" name="endDate" required>
+                                <input type="date" name="endDate" id="defaultEndDate" required>
                             </div>
                             <div class="form-group">
                                 <label>Target Event (optional)</label>
@@ -182,11 +182,11 @@ async def programmes(request: Request, error: str = None, success: str = None):
                             </div>
                             <div class="form-group">
                                 <label>Start Date</label>
-                                <input type="date" name="startDate" required>
+                                <input type="date" name="startDate" id="customStartDate" required onchange="document.getElementById('customEndDate').min = this.value">
                             </div>
                             <div class="form-group">
                                 <label>End Date</label>
-                                <input type="date" name="endDate" required>
+                                <input type="date" name="endDate" id="customEndDate" required>
                             </div>
                             <div class="form-group">
                                 <label>Target Event (optional)</label>
@@ -254,9 +254,8 @@ async def add_programme(
 
         if endDate < startDate:
             return RedirectResponse(url="/programmes?error=End+date+cannot+be+before+start+date", status_code=303)
-        
-    except Exception as e:
-        print(f"Error, {e}")
+
+    except ValueError:
         return RedirectResponse(url="/programmes?error=Invalid+date+format", status_code=303)
 
     if programmeType == "default":
@@ -426,13 +425,13 @@ async def view_programme(request: Request, programmeId: int):
                     <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
                         <a href="/home">Home</a>
-                        <a href="/add-workout">Add Workout</a>
                         <a href="/programmes" class="active">Programmes</a>
                         <a href="/competitions">Competitions</a>
                         <a href="/progress">Progress</a>
                         <a href="/guides">Help</a>
                         <a href="/settings">Settings</a>
-                        <a href="/logout" class="nav-btn">Logout</a>
+                        <a href="/add-workout" class="add-workout">Add Workout</a>
+                        <a href="/logout" class="logout">Logout</a>
                     </div>
                 </nav>
                 <div style="max-width:700px; margin: 40px auto; padding: 0 20px;">

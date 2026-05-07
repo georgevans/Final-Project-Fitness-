@@ -40,12 +40,12 @@ async def add_workout(request: Request, error: str = None):
                     <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
                         <a href="/home">Home</a>
-                        <a href="/add-workout" class="active">Add Workout</a>
                         <a href="/programmes">Programmes</a>
                         <a href="/competitions">Competitions</a>
                         <a href="/progress">Progress</a>
                         <a href="/guides">Help</a>
                         <a href="/settings">Settings</a>
+                        <a href="/add-workout" class="add-workout">Add Workout</a>
                         <a href="/logout" class="nav-btn">Logout</a>
                     </div>
                 </nav>
@@ -109,13 +109,13 @@ async def add_workout(request: Request, error: str = None):
                                 <input type="text" name="exerciseName_${{exerciseCount}}" placeholder="e.g. Running"><br><br>
 
                                 <label>Duration (minutes)</label><br>
-                                <input type="number" name="duration_${{exerciseCount}}" placeholder="Enter duration"><br><br>
+                                <input type="number" name="duration_${{exerciseCount}}" min="0" placeholder="Enter duration"><br><br>
 
                                 <label>Distance ({distance_unit})</label><br>
-                                <input type="number" name="distance_${{exerciseCount}}" placeholder="Enter distance" step="0.1"><br><br>
+                                <input type="number" name="distance_${{exerciseCount}}" min="0" placeholder="Enter distance" step="0.1"><br><br>
 
                                 <label>Calories Burned</label><br>
-                                <input type="number" name="calories_${{exerciseCount}}" placeholder="Enter calories"><br><br>
+                                <input type="number" name="calories_${{exerciseCount}}" min="0" placeholder="Enter calories"><br><br>
                             </div>
 
                             <div id="weightFields_${{exerciseCount}}" style="display:none">
@@ -216,10 +216,11 @@ async def add_workout_post(
         exerciseType = formData.get(f"workoutType_{i}")
 
         if exerciseType == "cardio":
+            cardioType = formData.get(f"cardioType_{i}") or ""
             exercises.append({
                 "type": "cardio",
-                "cardioType": formData.get(f"cardioType_{i}"),
-                "name": formData.get(f"exerciseName_{i}"),
+                "cardioType": cardioType,
+                "name": formData.get(f"exerciseName_{i}") or cardioType,
                 "duration": formData.get(f"duration_{i}"),
                 "distance": formData.get(f"distance_{i}"),
                 "calories": formData.get(f"calories_{i}"),
@@ -299,8 +300,8 @@ async def add_workout_post(
                 cursor.execute(
                     '''
                     INSERT INTO "Cardio"
-                    ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories")
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories", "CardioType", "CardioDate")
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     ''',
                     (
                         exerciseId,
@@ -308,7 +309,9 @@ async def add_workout_post(
                         exercise["distance"] or 0,
                         "m",
                         distance_unit,
-                        exercise["calories"] or 0
+                        exercise["calories"] or 0,
+                        exercise["cardioType"],
+                        workoutDate
                     )
                 )
             elif exercise["type"] == "weights":
