@@ -32,7 +32,6 @@ async def progress(request: Request):
         elif row[0] == "weights":
             weights_count = row[1]
 
-    weeks_with_workouts = len(weekly_counts)
     avg_per_week = sum(row[1] for row in weekly_counts) / 4 if weekly_counts else 0
 
     if avg_per_week >= 3:
