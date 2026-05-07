@@ -254,11 +254,7 @@ async def home(request: Request):
                                 ? programmeEl.textContent.toLowerCase().replace("programme:", "").trim()
                                 : "";
 
-                            if (!programme) {{
-                                card.style.display = "none";
-                                return;
-                            }}
-
+                            // Match on title OR programme (including empty programmes)
                             const match = title.includes(input) || programme.includes(input);
                             card.style.display = match ? "block" : "none";
                         }});
@@ -268,22 +264,32 @@ async def home(request: Request):
                         const sort = document.getElementById('sortSelect').value;
                         const grid = document.querySelector('.workout-grid');
                         if (!grid) return;
-                        const cards = Array.from(grid.children);
-                        cards.sort(function(a, b) {{
+
+                        const getProgramme = (card) => {{
+                            const el = card.querySelector('.programme');
+                            return el ? el.textContent.replace("Programme:", "").trim().toLowerCase() : "";
+                        }};
+
+                        let cards = Array.from(grid.children);
+
+                        // Hide cards without programmes when sorting by programme
+                        const isProgrammeSort = sort === 'programme-az' || sort === 'programme-za';
+                        
+                        cards.forEach(card => {{
+                            const hasProgramme = getProgramme(card) !== "";
+                            if (isProgrammeSort && !hasProgramme) {{
+                                card.style.display = "none";
+                            }} else {{
+                                card.style.display = "block";
+                            }}
+                        }});
+
+                        cards.sort((a, b) => {{
                             const titleA = a.querySelector('h5').textContent.toLowerCase();
                             const titleB = b.querySelector('h5').textContent.toLowerCase();
+
                             const dateA = new Date(a.querySelector('[data-date]').dataset.date);
                             const dateB = new Date(b.querySelector('[data-date]').dataset.date);
-                            
-                            const getProgramme = (card) => {{
-                                const ps = card.querySelectorAll('p');
-                                for(let p of ps) {{
-                                    if (p.textContent.toLowerCase().includes("programme:")) {{
-                                        return p.textContent.replace("Programme:", "").trim().toLowerCase();
-                                    }}
-                                }}
-                                return "";
-                            }}
 
                             const progA = getProgramme(a);
                             const progB = getProgramme(b);
@@ -299,9 +305,8 @@ async def home(request: Request):
 
                             return 0;
                         }});
-                        for (let i = 0; i < cards.length; i++) {{
-                            grid.appendChild(cards[i]);
-                        }}
+
+                        cards.forEach(card => grid.appendChild(card));
                     }}
                     
                     window.onload = function () {{
