@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
-from routers import home, login, signup, addworkout, programme, competitions, progress, guides, settings
+from routers import home, login, signup, addworkout, programme, competitions, progress, guides, settings, livetracker
 from database.db import get_connection
 from dotenv import load_dotenv
 
@@ -36,6 +36,7 @@ app.include_router(progress.router)
 app.include_router(competitions.router)
 app.include_router(guides.router)
 app.include_router(settings.router)
+app.include_router(livetracker.router)
 
 
 @app.get("/")

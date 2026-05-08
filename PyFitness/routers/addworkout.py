@@ -47,13 +47,16 @@ async def add_workout(request: Request, error: str = None):
                         <a href="/guides">Help</a>
                         <a href="/settings">Settings</a>
                         <a href="/add-workout" class="add-workout">Add Workout</a>
-                        <a href="/logout" class="nav-btn">Logout</a>
+                        <a href="/logout" class="logout">Logout</a>
                     </div>
                 </nav>
                 <div class="workout-wrapper" id="main-content">
                     <div class="workout-card">
                         <div class="accent-line"></div>
                         {error_html}
+                        <p style="margin-bottom:16px; font-size:0.85rem; color:var(--text-secondary);">
+                            Want to track a run in real time? <a href="/live-tracker" style="color:var(--toasted-almond);">Open Live Tracker</a>
+                        </p>
                         <form action="/add-workout" method="post">
                             <input type="hidden" name="programmeDayId" value="{programmeDayId}">
                             <input type="hidden" name="programmeId" value="{programmeId}">
