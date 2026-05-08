@@ -24,7 +24,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./PyFitness
+        working-directory: ./FiTrackr
 
     steps:
       - name: Checkout repository
