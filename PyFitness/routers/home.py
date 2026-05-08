@@ -2,7 +2,7 @@ import html
 import json
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from database.db import get_workouts_by_user, get_connection, get_user_settings, get_calendar_events, delete_workout, get_workout_summary, get_calorie_summary
+from database.db import get_workouts_by_user, get_connection, get_user_settings, get_calendar_events, delete_workout, get_workout_summary, get_calorie_summary, get_programmeid_from_workoutid
 
 router = APIRouter()
 
@@ -28,7 +28,8 @@ async def home(request: Request):
 
         for i, workout in enumerate(workouts):
             title = html.escape(workout[1])
-
+            if workout[4]:
+                programmeId = get_programmeid_from_workoutid(workout[0])
             workout_html += f"""
                 <div class="workout-card" onclick="openWorkout({workout[0]})" tabindex="0" role="button" aria-label="View workout {title}" onkeydown="if(event.key==='Enter'||event.key===' ')openWorkout({workout[0]})">
                     <h3>Workout {i + 1}</h3>
@@ -40,6 +41,12 @@ async def home(request: Request):
                         <input type="hidden" name="workoutId" value="{workout[0]}">
                         <button type="submit" class="secondary">Delete</button>
                     </form>
+                    {f"""
+                        <form action ="/programmes/{programmeId}" method="get" onclick="event.stopPropagation()">
+                            <input type="hidden" name="programmeId" value="{programmeId}">
+                            <button type="submit" class="secondary">View Programme</button>
+                        </form>
+                    """ if workout[4] else ""}
                 </div>
             """
 

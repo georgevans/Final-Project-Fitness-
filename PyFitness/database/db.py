@@ -344,3 +344,32 @@ def get_user_competitions(userId: int):
     except Exception as e:
         print(f"Database error: {e}")
         return 0
+
+def get_programmeid_from_workoutid(workoutId):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            '''
+            SELECT p."ProgrammeID"
+            FROM "Programme" p
+            JOIN "ProgrammeDay" pd 
+                ON pd."ProgrammeDayID" = pd."ProgrammeDayID"
+            JOIN "Workout" w 
+                ON pd."WorkoutID" = w."WorkoutID"
+            WHERE w."WorkoutID" = %s
+            ''',
+            (workoutId,)
+        )
+
+        result = cur.fetchone()
+
+        cur.close()
+        conn.close()
+
+        return result[0] if result else None
+
+    except Exception as e:
+        print(f"Database error: {e}")
+        return None
