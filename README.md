@@ -18,7 +18,9 @@ DATABASE_URL=postgresql://neondb_owner:npg_8BvoEYWZFtx3@ep-twilight-term-abelis6
 SECRET_KEY=de80dewhfrc3r.23refew
 ```
 
-## Ngrok Setup (Mobile / Live Tracker Testing)
+## Ngrok Setup (Mobile / Live Tracker Testing(Additional Feature will not work unless!)
+
+
 
 ### Prerequisites
 - A free ngrok account at [ngrok.com](https://ngrok.com)
