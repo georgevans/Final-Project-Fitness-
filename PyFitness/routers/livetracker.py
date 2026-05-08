@@ -265,7 +265,7 @@ async def live_tracker_save(
 
         cursor.execute(
             'INSERT INTO "Exercise" ("WorkoutID", "Name", "Type") VALUES (%s, %s, %s) RETURNING "ExerciseID"',
-            (workoutId, "Run", "cardio")
+            (workoutId, cardioType, "C")
         )
         exerciseId = cursor.fetchone()[0]
 
