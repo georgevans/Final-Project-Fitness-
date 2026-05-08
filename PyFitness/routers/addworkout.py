@@ -276,6 +276,8 @@ async def add_workout_post(
             )
 
         for exercise in exercises:
+            if not exercise.get("difficulty") or exercise["difficulty"].strip() == "":
+                exercise["difficulty"] = None
             if exercise["type"] == "weights":
                 cursor.execute(
                     '''
