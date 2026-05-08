@@ -208,6 +208,10 @@ async def programmes(request: Request, error: str = None, success: str = None):
                         }}
                     }}
 
+                    /**
+                     * Displays a temporary toast notification at the top of the page.
+                     * @param {{string}} message
+                     */
                     function showToast(message) {{
                         const toast = document.createElement("div");
                         toast.innerText = message;
@@ -456,6 +460,10 @@ async def view_programme(request: Request, programmeId: int):
                         }}
                     }}
 
+                    /**
+                     * Displays a temporary toast notification at the top of the page.
+                     * @param {{string}} message
+                     */
                     function showToast(message) {{
                         const toast = document.createElement("div");
                         toast.innerText = message;

@@ -193,6 +193,10 @@ async def guides(request: Request):
             </div>
 
             <script>
+                /**
+                 * Opens the guide modal and populates it with the given exercise data.
+                 * @param {{{{name: string, path: string, desc: string}}}} data
+                 */
                 function openModal(data) {{
                     document.getElementById("modal").style.display = "flex";
                     document.getElementById("mTitle").innerText = data.name;
@@ -200,6 +204,7 @@ async def guides(request: Request):
                     document.getElementById("mDesc").innerText = data.desc;
                 }}
 
+                /** Closes the guide modal when clicking the backdrop. */
                 function closeModal(e) {{
                     if (!e || e.target.id === "modal") {{
                         document.getElementById("modal").style.display = "none";
@@ -208,6 +213,7 @@ async def guides(request: Request):
             </script>
 
             <script>
+                /** Toggles the visibility of the FAQ answer following the given button. */
                 function toggleFaq(btn) {{
                     const answer = btn.nextElementSibling;
                     if (answer.style.display === "block") {{

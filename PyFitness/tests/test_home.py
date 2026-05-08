@@ -1,12 +1,17 @@
+"""Tests for the home page routes: rendering, workout display, and navigation."""
+
 import pytest
 import uuid
 from fastapi.testclient import TestClient
 from database.db import get_connection
 from main import app
 
+
 @pytest.fixture
 def client():
+    """Return an unauthenticated test client."""
     return TestClient(app)
+
 
 @pytest.fixture
 def loggedInClient(client):
@@ -23,6 +28,7 @@ def loggedInClient(client):
 
     yield client
 
+    # Remove the temporary user created during signup.
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -74,5 +80,6 @@ def test_home_page_contains_progress_link(loggedInClient):
     assert "/progress" in response.text
     
 def test_home_page_contains_delete_button(loggedInClient):
+    """Verify a delete button or empty-state message is present depending on workout history."""
     response = loggedInClient.get("/home")
     assert "Delete" in response.text or "No workouts logged yet" in response.text

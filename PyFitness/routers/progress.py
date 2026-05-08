@@ -1,12 +1,15 @@
+"""Routes for the progress page: workout stats, training readiness score, and weekly breakdown chart."""
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_workout_summary, get_workout_type_summary, get_calorie_summary, get_workout_analysis, get_user_competitions
-import json  
+import json
 
 router = APIRouter()
 
 @router.get("/progress", response_class=HTMLResponse)
 async def progress(request: Request):
+    """Render the progress page with stats, training readiness score, and workout breakdown chart."""
     if "userId" not in request.session:
         return RedirectResponse(url="/login?error=Must+be+logged+in", status_code=303)
 
@@ -22,6 +25,7 @@ async def progress(request: Request):
     weekly_counts = analysis["weekly"]
     type_counts = analysis["types"]
     
+    # Training readiness is scored out of 100: 40 pts for frequency, 30 for cardio, 30 for weights.
     score = 0
     cardio_count = 0
     weights_count = 0
@@ -32,6 +36,7 @@ async def progress(request: Request):
         elif row[0] == "weights":
             weights_count = row[1]
 
+    # Calculate the average workouts per week over the last 4 weeks.
     avg_per_week = sum(row[1] for row in weekly_counts) / 4 if weekly_counts else 0
 
     if avg_per_week >= 3:
@@ -65,6 +70,7 @@ async def progress(request: Request):
     this_month = summary["this_month"]
     
     
+    # Parallel arrays for the Chart.js line chart; missing weeks default to 0.
     weeks = []
     cardio_map = {}
     weights_map = {}
@@ -78,13 +84,14 @@ async def progress(request: Request):
         elif row[1] == "weights":
             weights_map[week_label] = row[2]
 
-    cardio_data = [cardio_map.get(w, 0) for w in weeks]
-    weights_data = [weights_map.get(w, 0) for w in weeks]
+    cardio_data = [cardio_map.get(w, 0) for w in weeks]   # Defaults to 0 for weeks with no cardio.
+    weights_data = [weights_map.get(w, 0) for w in weeks]  # Defaults to 0 for weeks with no weights.
     labels_json = json.dumps(weeks)
     cardio_json = json.dumps(cardio_data)
     weights_json = json.dumps(weights_data)
    
    
+    # Only show the readiness score if the user has at least one competition logged.
     if competition_count == 0:
         analysis_html = """
             <div style="text-align:center; padding: 20px 0;">

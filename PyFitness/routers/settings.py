@@ -1,3 +1,5 @@
+"""Routes for the settings page: displaying and updating weight and distance unit preferences."""
+
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_user_settings, update_user_settings
@@ -6,14 +8,15 @@ router = APIRouter()
 
 @router.get("/settings", response_class=HTMLResponse)
 async def settings(request: Request):
+    """Render the settings page with the user's saved unit preferences pre-selected."""
     if "userId" not in request.session:
         return RedirectResponse("/login=Please+log+in", status_code=303)
-    
+
     userId = request.session["userId"]
 
     settings = get_user_settings(userId)
 
-    weight_unit = settings[0] if settings else "kg"
+    weight_unit = settings[0] if settings else "kg"   # settings tuple: (weight_unit, distance_unit)
     distance_unit = settings[1] if settings else "km"
 
     return f"""
@@ -91,6 +94,10 @@ async def settings(request: Request):
                         }}
                     }}
 
+                    /**
+                     * Displays a temporary toast notification at the bottom of the page.
+                     * @param {{string}} message
+                     */
                     function showToast(message) {{
                         const toast = document.createElement("div");
                         toast.innerText = message;
@@ -120,6 +127,10 @@ async def settings(request: Request):
                         toggle.checked = true;
                     }}
 
+                    /**
+                     * Switches between light and dark mode and persists the choice in localStorage.
+                     * @param {{HTMLInputElement}} checkbox
+                     */
                     function toggleTheme(checkbox) {{
                         if (checkbox.checked) {{
                             document.body.classList.add('light-mode');
@@ -140,6 +151,7 @@ async def update_settings(
     weight_unit: str = Form(...),
     distance_unit: str = Form(...)
 ):
+    """Save updated unit preferences for the logged-in user."""
     if "userId" not in request.session:
         return RedirectResponse("/login", status_code=303)
     

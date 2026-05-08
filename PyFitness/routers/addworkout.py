@@ -1,3 +1,5 @@
+"""Routes for logging a new workout with weight and cardio exercise types."""
+
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection, get_user_settings
@@ -8,14 +10,16 @@ router = APIRouter()
 
 @router.get("/add-workout", response_class=HTMLResponse)
 async def add_workout(request: Request, error: str = None):
+    """Render the add workout page with dynamic exercise entry fields."""
     error_html = f'<div class="error" role="alert">{error}</div>' if error else ""
 
-    userId = request.session.get("userId")  
-    
+    userId = request.session.get("userId")
+
     if not userId:
         return RedirectResponse("/login", status_code=303)
 
     settings = get_user_settings(userId)
+    # The settings tuple is ordered as (weight_unit, distance_unit).
     weight_unit = settings[0] if settings else "kg"
     distance_unit = settings[1] if settings else "km"
 
@@ -84,6 +88,7 @@ async def add_workout(request: Request, error: str = None):
                     let exerciseCount = 0;
                     let cardioCount = {{'Run': 0, 'Cycle': 0, 'Swim': 0, 'Weights': 0}};
 
+                    /** Appends a new exercise entry form with cardio and weights fields to the exercise list. */
                     function addExercise() {{
                         exerciseCount++;
                         const container = document.getElementById("exerciseList");
@@ -140,11 +145,17 @@ async def add_workout(request: Request, error: str = None):
                         container.appendChild(exercise);
                     }}
 
+                    /** Removes the exercise form with the given id from the list. */
                     function removeExercise(id) {{
                         const exercise = document.getElementById("exercise_" + id);
                         exercise.remove();
                     }}
 
+                    /**
+                     * Shows the relevant fields (cardio or weights) based on the selected exercise type.
+                     * @param {{string}} value - Selected exercise type.
+                     * @param {{number}} id - Exercise form index.
+                     */
                     function handleTypeChange(value, id) {{
                         if (value === "weights") {{
                             document.getElementById("weightFields_" + id).style.display = "block";
@@ -159,10 +170,19 @@ async def add_workout(request: Request, error: str = None):
                         }}
                     }}
 
+                    /**
+                     * Updates the exercise title to reflect the selected cardio type.
+                     * @param {{string}} cardioType - Selected cardio type (e.g. Run, Cycle).
+                     * @param {{number}} id - Exercise form index.
+                     */
                     function handleCardioTypeChange(cardioType, id) {{
                         document.getElementById("exerciseTitle_" + id).textContent = cardioType + " " + (++cardioCount[cardioType]);
                     }}
 
+                    /**
+                     * Appends a new set entry (reps and weight) to the given weights exercise.
+                     * @param {{number}} exerciseId - The exercise form index to add the set to.
+                     */
                     function addSet(exerciseId) {{
                         const setList = document.getElementById("setList_" + exerciseId);
                         const setCount = setList.children.length + 1;
@@ -181,6 +201,7 @@ async def add_workout(request: Request, error: str = None):
                         setList.appendChild(setDiv);
                     }}
 
+                    /** Removes the set with the given id from the exercise set list. */
                     function removeSet(exerciseId, setId) {{
                         const set = document.getElementById("set_" + exerciseId + "_" + setId);
                         set.remove();
@@ -200,20 +221,23 @@ async def add_workout_post(
     programmeDayId: str = Form(None),
     programmeId: str = Form(None)
 ):
+    """Save a new workout with all its exercises and sets/cardio entries to the database."""
     userId = request.session.get("userId")
 
     if not userId:
         return RedirectResponse('/login', status_code=303)
 
     settings = get_user_settings(userId)
+    # The settings tuple is ordered as (weight_unit, distance_unit).
     weight_unit = settings[0] if settings else "kg"
     distance_unit = settings[1] if settings else "km"
-        
+
     formData = await request.form()
 
     if not workoutDate:
-        workoutDate = datetime.now().date()
+        workoutDate = datetime.now().date()  # Defaults to today when no date is specified.
 
+    # Form fields are named dynamically as workoutType_1, workoutType_2, etc.
     exercises = []
     i = 1
     while f"workoutType_{i}" in formData:
@@ -268,6 +292,7 @@ async def add_workout_post(
 
         programmeDayId = request.query_params.get("programmeDayId")
 
+        # Link the workout to its programme day when launched from a programme.
         if programmeDayId:
             cursor.execute(
                 '''
@@ -279,6 +304,7 @@ async def add_workout_post(
             )
 
         for exercise in exercises:
+            # Difficulty is optional; store NULL rather than an empty string.
             if not exercise.get("difficulty") or exercise["difficulty"].strip() == "":
                 exercise["difficulty"] = None
             if exercise["type"] == "weights":
@@ -313,7 +339,7 @@ async def add_workout_post(
                         exerciseId,
                         exercise["duration"] or 0,
                         exercise["distance"] or 0,
-                        "m",
+                        "m",  # TimeUnit stores duration in minutes.
                         distance_unit,
                         exercise["calories"] or 0,
                         exercise["cardioType"],
@@ -321,7 +347,7 @@ async def add_workout_post(
                     )
                 )
             elif exercise["type"] == "weights":
-                for idx, s in enumerate(exercise["sets"]):
+                for idx, s in enumerate(exercise["sets"]):  # SetNumber is 1-based.
                     cursor.execute(
                         '''
                         INSERT INTO "ExerciseSet"

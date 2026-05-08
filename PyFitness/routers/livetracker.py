@@ -16,6 +16,7 @@ async def live_tracker(request: Request, error: str = None):
 
     userId = request.session["userId"]
     settings = get_user_settings(userId)
+    # The settings tuple is ordered as (weight_unit, distance_unit).
     distance_unit = settings[1] if settings else "km"
     error_html = f'<div class="error" role="alert">{error}</div>' if error else ""
 
@@ -144,7 +145,7 @@ async def live_tracker(request: Request, error: str = None):
                     function tick() {{
                         elapsedSeconds++;
                         document.getElementById('timerDisplay').textContent = formatTime(elapsedSeconds);
-                        // Only show pace once enough distance is covered to avoid inflated values
+                        // Only show pace once enough distance is covered to avoid inflated values.
                         if (totalDistance >= 0.1) {{
                             const pace = (elapsedSeconds / 60) / totalDistance;
                             document.getElementById('paceDisplay').textContent = pace.toFixed(2);
@@ -178,7 +179,7 @@ async def live_tracker(request: Request, error: str = None):
 
                         watchId = navigator.geolocation.watchPosition(
                             function(pos) {{
-                                // Ignore readings with very poor GPS accuracy (worse than 100m)
+                                // Ignore readings with very poor GPS accuracy (worse than 100 m as it was causing issues).
                                 if (pos.coords.accuracy > 100) return;
                                 const lat = pos.coords.latitude;
                                 const lon = pos.coords.longitude;
@@ -237,10 +238,11 @@ async def live_tracker_save(
 
     userId = request.session["userId"]
     settings = get_user_settings(userId)
+    # The settings tuple is ordered as (weight_unit, distance_unit).
     distance_unit = settings[1] if settings else "km"
 
     if cardioType not in ("Run", "Cycle"):
-        cardioType = "Run"
+        return RedirectResponse(url="/live-tracker?error=Invalid+activity+type", status_code=303)
 
     try:
         duration_float = float(duration)
@@ -273,6 +275,7 @@ async def live_tracker_save(
             '''INSERT INTO "Cardio"
                ("ExerciseID", "Duration", "Distance", "TimeUnit", "DistanceUnit", "Calories", "CardioType", "CardioDate")
                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)''',
+            # "m" = TimeUnit stored in minutes; Calories = 0 because GPS cannot compute calorie burn.
             (exerciseId, duration_float, distance_float, "m", distance_unit, 0, cardioType, workoutDate)
         )
 

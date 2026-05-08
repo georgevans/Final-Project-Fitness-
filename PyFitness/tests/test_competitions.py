@@ -1,3 +1,5 @@
+"""Tests for the competitions routes: page rendering, form validation, and DB interactions."""
+
 import pytest
 import uuid
 from database.db import get_connection
@@ -8,10 +10,12 @@ from routers.competitions import validate_competition, validate_result_time
 
 @pytest.fixture
 def client():
+    """Return an unauthenticated test client."""
     return TestClient(app)
 
 @pytest.fixture
 def loggedInClient(client):
+    """Register a temporary user, yield (client, username), then clean up all test data."""
     username = f"testuser_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
     password = "Password123."
@@ -26,7 +30,9 @@ def loggedInClient(client):
     assert response.status_code == 303
     assert response.headers["location"] == "/home"
 
-    yield client, username  # Return both client and username
+    # Username is yielded so tests can look up the UserID for direct DB inserts
+
+    yield client, username
 
     # Database cleanup - delete test data after tests complete
     try:
@@ -86,13 +92,14 @@ def test_competitions_page_shows_error(loggedInClient):
     response = client.get("/competitions?error=Something+went+wrong",follow_redirects=False)
     assert "Something went wrong" in response.text
     
-"""Parameterized test to check that competitions added to the database show up on the upcoming competitions table."""""
 @pytest.mark.parametrize("race, date, description", [
     ("Park Run", "2026-06-01", "Local race"),
     ("City Marathon", "2026-10-01", "Big event"),
     ("Swim Race", "2026-08-15", ""),
 ])
+
 def test_upcoming_competitions_display_in_table(loggedInClient, race, date, description):
+    """Insert a competition directly into the DB and verify it appears in the upcoming table."""
     client, username = loggedInClient
 
     conn = get_connection()
@@ -252,9 +259,7 @@ def test_complete_competition_invalid_id_returns_error(loggedInClient):
 
 
 
-## validation function tests using parameterization
-
-# validate_competition tests
+# Unit tests for validation functions — these run without HTTP and test all boundary cases
 
 @pytest.mark.parametrize("race, type_, date, distance, desc, expected_error", [
     ("Park Run",     "Run",      "2026-06-01", 5.0,  "",       False),  # valid run
@@ -293,6 +298,7 @@ def test_personal_bests_empty_when_no_completed(loggedInClient):
     assert "No personal bests yet" in response.text
 
 def test_personal_bests_shows_best_time(loggedInClient):
+    """Insert two completed competitions and verify the PB table shows both times."""
     client, username = loggedInClient
     conn = get_connection()
     cursor = conn.cursor()
@@ -338,6 +344,7 @@ def test_competitions_page_contains_chart_js_library(loggedInClient):
     ("Swim", "Swimming", "2", "2026-05-03"),
 ])
 def test_pace_chart_displays_cardio_data(loggedInClient, cardio_type, exercise_name, distance, day):
+    """Insert a cardio session and verify the pace chart data includes the activity type."""
     client, username = loggedInClient
     conn = get_connection()
     cursor = conn.cursor()
