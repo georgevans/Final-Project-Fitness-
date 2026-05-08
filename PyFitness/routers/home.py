@@ -2,7 +2,7 @@ import html
 import json
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from database.db import get_workouts_by_user, get_connection, get_user_settings, get_calendar_events, delete_workout 
+from database.db import get_workouts_by_user, get_connection, get_user_settings, get_calendar_events, delete_workout, get_workout_summary, get_calorie_summary
 
 router = APIRouter()
 
@@ -16,7 +16,7 @@ async def home(request: Request):
 
     workout_html = ""
 
-    if len(workouts) == 0:
+    if not workouts or len(workouts) == 0:
         workout_html = """
             <div class="empty-state">
                 <p>No workouts logged yet!</p>
@@ -30,9 +30,10 @@ async def home(request: Request):
             title = html.escape(workout[1])
 
             workout_html += f"""
-                <div class="workout-card" onclick="openWorkout({workout[0]})">
+                <div class="workout-card" onclick="openWorkout({workout[0]})" tabindex="0" role="button" aria-label="View workout {title}" onkeydown="if(event.key==='Enter'||event.key===' ')openWorkout({workout[0]})">
                     <h3>Workout {i + 1}</h3>
                     <h5>Title: {title}</h5>
+                    {f"<p class='programme'>Programme: {workout[4]}</p>" if workout[4] else ""}
                     <p data-date="{workout[2]}"><strong>Date:</strong> {workout[2]}</p>
                     <p><strong>Time:</strong> {str(workout[3])[:8]}</p>
                     <form action="/delete-workout" method="post" onclick="event.stopPropagation()" onsubmit="return confirm('Are you sure you want to delete this workout?')">
@@ -52,13 +53,20 @@ async def home(request: Request):
         events_by_date[date_str].append({"name": name, "type": event_type})
     events_json = json.dumps(events_by_date)
     
+    summary = get_workout_summary(userId)
+    calories = get_calorie_summary(userId)
+    this_week = summary["this_week"]
+    this_month = summary["this_month"]
+    calories_week = calories["this_week"]
+    calories_month = calories["this_month"]
 
     return f"""
-        <html>
+        <html lang="en">
             <head>
                 <title>FiTrackr - Home</title>
                 <link rel="stylesheet" href="/static/main.css">
                 <link rel="stylesheet" href="/static/home.css">
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             </head>
             <body>
             <script>
@@ -66,6 +74,7 @@ async def home(request: Request):
                     document.body.classList.add('light-mode');
                 }}
             </script>
+                <a class="skip-link" href="#main-content">Skip to main content</a>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
@@ -80,9 +89,11 @@ async def home(request: Request):
                     </div>
                 </nav>
 
-                <div class="home-wrapper">
+                <div class="home-wrapper" id="main-content">
                     <div class="home-greeting"><h3>Hi, <span>{request.session["username"]}</span></h3></div>
-                    <h2>My <span>Workouts</span></h2>
+                    <div class="home-columns">
+                        <div class="home-left">
+                            <h2>My <span>Workouts</span></h2>
 
                     <div class="search-bar">
                         <input type="text" id="searchInput" placeholder="Search workouts..." onkeyup="filterWorkouts()">
@@ -92,12 +103,30 @@ async def home(request: Request):
                             <option value="za">Sort: Z to A</option>
                             <option value="newest">Sort: Newest First</option>
                             <option value="oldest">Sort: Oldest First</option>
+                            <option value="programme-az">Sort: Programme: A to Z</option>
+                            <option value="programme-za">Sort: Programme: Z to A</option>
                         </select>
                     </div>
 
                     <div class="workout-scroll">
                         {workout_html}
                     </div>
+                    
+                    </div>
+                    <div class="home-right">
+                        <h2>My <span>Stats</span></h2>
+                        <div class="donut-card">
+                            <p class="stat-label">Workouts</p>
+                            <canvas id="workoutsChart"></canvas>
+                            <p class="donut-caption">{this_week} this week / {this_month} this month</p>
+                        </div>
+                        <div class="donut-card">
+                            <p class="stat-label">Calories</p>
+                            <canvas id="caloriesChart"></canvas>
+                            <p class="donut-caption">{calories_week} kcal this week / {calories_month} kcal this month</p>
+                        </div>
+                    </div>
+                </div>
 
                     <div class="calendar-section">
                         <h2>My <span>Calendar</span></h2>
@@ -115,9 +144,9 @@ async def home(request: Request):
                     </div>
                 </div>
 
-                <div id="workoutModal" class="modal" style="display:none;">
+                <div id="workoutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" style="display:none;">
                     <div class="modal-content">
-                        <span onclick="closeModal()" class="close">&times;</span>
+                        <span onclick="closeModal()" class="close" role="button" tabindex="0" aria-label="Close">&times;</span>
                         <div id="modalBody"></div>
                     </div>
                 </div>
@@ -158,11 +187,16 @@ async def home(request: Request):
 
                         document.getElementById("modalBody").innerHTML = html;
                         document.getElementById("workoutModal").style.display = "flex";
+                        document.querySelector("#workoutModal .close").focus();
                     }}
 
                     function closeModal() {{
                         document.getElementById("workoutModal").style.display = "none";
                     }}
+
+                    document.addEventListener('keydown', function(e) {{
+                        if (e.key === 'Escape') closeModal();
+                    }});
 
                     const events = {events_json};
                     let currentYear = new Date().getFullYear();
@@ -239,41 +273,112 @@ async def home(request: Request):
                     }}
 
                     renderCalendar(currentYear, currentMonth);
+                    
+                    const workoutsCtx = document.getElementById('workoutsChart').getContext('2d');
+                    new Chart(workoutsCtx, {{
+                        type: 'doughnut',
+                        data: {{
+                            labels: ['This Week', 'Rest of Month'],
+                            datasets: [{{
+                                data: [{this_week}, {this_month} - {this_week}],
+                                backgroundColor: ['#EA8C55', '#4a3830'],
+                                borderWidth: 0
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            plugins: {{
+                                legend: {{ display: false }}
+                            }}
+                        }}
+                    }});
 
+                    const caloriesCtx = document.getElementById('caloriesChart').getContext('2d');
+                    new Chart(caloriesCtx, {{
+                        type: 'doughnut',
+                        data: {{
+                            labels: ['This Week', 'Rest of Month'],
+                            datasets: [{{
+                                data: [{calories_week}, {calories_month} - {calories_week}],
+                                backgroundColor: ['#C75146', '#4a3830'],
+                                borderWidth: 0
+                            }}]
+                        }},
+                        options: {{
+                            responsive: true,
+                            plugins: {{
+                                legend: {{ display: false }}
+                            }}
+                        }}
+                    }});
+                    
+
+                    
                     function filterWorkouts() {{
                         const input = document.getElementById('searchInput').value.toLowerCase();
                         const cards = document.querySelectorAll('.workout-card');
-                        for (let i = 0; i < cards.length; i++) {{
-                            const title = cards[i].querySelector('h5').textContent.toLowerCase();
-                            if (title.includes(input)) {{
-                                cards[i].style.display = 'block';
-                            }} else {{
-                                cards[i].style.display = 'none';
-                            }}
-                        }}
+
+                        cards.forEach(card => {{
+                            const title = card.querySelector('h5').textContent.toLowerCase();
+
+                            const programmeEl = card.querySelector('.programme');
+                            const programme = programmeEl 
+                                ? programmeEl.textContent.toLowerCase().replace("programme:", "").trim()
+                                : "";
+
+                            // Match on title OR programme (including empty programmes)
+                            const match = title.includes(input) || programme.includes(input);
+                            card.style.display = match ? "block" : "none";
+                        }});
                     }}
 
                     function sortWorkouts() {{
                         const sort = document.getElementById('sortSelect').value;
                         const grid = document.querySelector('.workout-grid');
                         if (!grid) return;
-                        const cards = Array.from(grid.children);
-                        cards.sort(function(a, b) {{
+
+                        const getProgramme = (card) => {{
+                            const el = card.querySelector('.programme');
+                            return el ? el.textContent.replace("Programme:", "").trim().toLowerCase() : "";
+                        }};
+
+                        let cards = Array.from(grid.children);
+
+                        // Hide cards without programmes when sorting by programme
+                        const isProgrammeSort = sort === 'programme-az' || sort === 'programme-za';
+                        
+                        cards.forEach(card => {{
+                            const hasProgramme = getProgramme(card) !== "";
+                            if (isProgrammeSort && !hasProgramme) {{
+                                card.style.display = "none";
+                            }} else {{
+                                card.style.display = "block";
+                            }}
+                        }});
+
+                        cards.sort((a, b) => {{
                             const titleA = a.querySelector('h5').textContent.toLowerCase();
                             const titleB = b.querySelector('h5').textContent.toLowerCase();
+
                             const dateA = new Date(a.querySelector('[data-date]').dataset.date);
                             const dateB = new Date(b.querySelector('[data-date]').dataset.date);
 
+                            const progA = getProgramme(a);
+                            const progB = getProgramme(b);
+
                             if (sort === 'az') return titleA.localeCompare(titleB);
                             if (sort === 'za') return titleB.localeCompare(titleA);
+
                             if (sort === 'newest') return dateB - dateA;
                             if (sort === 'oldest') return dateA - dateB;
 
+                            if (sort === 'programme-az') return progA.localeCompare(progB);
+                            if (sort === 'programme-za') return progB.localeCompare(progA);
+
                             return 0;
                         }});
-                        for (let i = 0; i < cards.length; i++) {{
-                            grid.appendChild(cards[i]);
-                        }}
+
+                        cards.forEach(card => grid.appendChild(card));
                     }}
                     
                     window.onload = function () {{
@@ -327,6 +432,7 @@ async def workout_details(workout_id: int, request: Request):
         return JSONResponse({"error": "Unauthorized"}, status_code=403)
 
     userId = request.session["userId"]
+    
 
     settings = get_user_settings(userId)
 

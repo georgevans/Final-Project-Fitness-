@@ -8,9 +8,9 @@ router = APIRouter()
 
 @router.get("/login", response_class=HTMLResponse)
 async def login(error: str = None):
-    error_html = f'<div class="login-error">{error}</div>' if error else ""
+    error_html = f'<div class="login-error" role="alert">{error}</div>' if error else ""
     return f"""
-        <html>
+        <html lang="en">
             <head>
                 <title>Log In</title>
                 <link rel="stylesheet" href="/static/main.css">
@@ -30,12 +30,12 @@ async def login(error: str = None):
                         {error_html}
                         <form action="/login" method="post">
                             <div class="login-form-group">
-                                <label>Username</label>
+                                <label for="username">Username</label>
                                 <input type="text" id="username" name="username" placeholder="Enter username" required>
                             </div>
 
                             <div class="login-form-group">
-                                <label>Password</label>
+                                <label for="password">Password</label>
                                 <input type="password" id="password" name="password" placeholder="Enter password" required>
                             </div>
 

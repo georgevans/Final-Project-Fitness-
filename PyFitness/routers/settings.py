@@ -17,7 +17,7 @@ async def settings(request: Request):
     distance_unit = settings[1] if settings else "km"
 
     return f"""
-        <html>
+        <html lang="en">
             <head>
                 <title>Settings</title>
                 <link rel="stylesheet" href="/static/main.css">
@@ -29,6 +29,7 @@ async def settings(request: Request):
                     document.body.classList.add('light-mode');
                 }}
             </script>
+                <a class="skip-link" href="#main-content">Skip to main content</a>
                 <nav class="navbar">
                     <a href="/home" class="navbar-brand">FiTrackr</a>
                     <div class="navbar-links">
@@ -42,7 +43,7 @@ async def settings(request: Request):
                         <a href="/logout" class="logout">Logout</a>
                     </div>
                 </nav>
-                <div class="form-page">
+                <div class="form-page" id="main-content">
                     <div class="settings-container">
 
                         <h1 class="settings-title">Settings</h1>
@@ -61,16 +62,16 @@ async def settings(request: Request):
                         <form class="unit-form" method="POST" action="/update-settings">
 
                             <div class="form-group">
-                                <label>Weight Unit</label>
-                                <select name="weight_unit">
+                                <label for="weight_unit">Weight Unit</label>
+                                <select name="weight_unit" id="weight_unit">
                                     <option value="kg" {"selected" if weight_unit == "kg" else ""}>Kilograms (kg)</option>
                                     <option value="lb" {"selected" if weight_unit == "lb" else ""}>Pounds (lb)</option>
                                 </select>
                             </div>
 
                             <div class="form-group">
-                                <label>Distance Unit</label>
-                                <select name="distance_unit">
+                                <label for="distance_unit">Distance Unit</label>
+                                <select name="distance_unit" id="distance_unit">
                                     <option value="km" {"selected" if distance_unit == "km" else ""}>Kilometres (km)</option>
                                     <option value="mi" {"selected" if distance_unit == "mi" else ""}>Miles (mi)</option>
                                 </select>

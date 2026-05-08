@@ -25,13 +25,33 @@ def get_workouts_by_user(userId: int):
     try:
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute('SELECT "WorkoutID", "Name", "WorkoutDate", "WorkoutTime" FROM "Workout" WHERE "UserID" = %s ORDER BY "WorkoutDate" DESC, "WorkoutTime" DESC',
-                    (userId, )
-        )
+
+        cur.execute("""
+            SELECT 
+                w."WorkoutID",
+                w."Name",
+                w."WorkoutDate",
+                w."WorkoutTime",
+                p."Name"
+            FROM "Workout" w
+            LEFT JOIN "ProgrammeDay" pd
+                ON w."WorkoutID" = pd."WorkoutID"
+            LEFT JOIN "Programme" p
+                ON pd."ProgrammeID" = p."ProgrammeID"
+            WHERE w."UserID" = %s
+            ORDER BY w."WorkoutDate" DESC, w."WorkoutTime" DESC
+        """, (userId,))
+
         workouts = cur.fetchall()
         cur.close()
         conn.close()
         return workouts
+
+    except Exception as e:
+        print(e)
+        return None
+    
+        
     except Exception as e:
         print(f"Database error: {e}")
         return []
