@@ -42,8 +42,8 @@ async def home(request: Request):
                         <button type="submit" class="secondary">Delete</button>
                     </form>
                     {f"""
-                        <form action ="/programmes/{workout[0]}" method="get" onclick="event.stopPropagation()">
-                            <input type="hidden" name="workoutId" value="{workout[0]}">
+                        <form action ="/programmes/{programmeId}" method="get" onclick="event.stopPropagation()">
+                            <input type="hidden" name="programmeId" value="{programmeId}">
                             <button type="submit" class="secondary">View Programme</button>
                         </form>
                     """ if workout[4] else ""}
