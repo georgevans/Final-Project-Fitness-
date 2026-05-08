@@ -1,3 +1,5 @@
+"""Routes for the competitions page: listing, adding, and completing competitions."""
+
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection
@@ -9,6 +11,7 @@ router = APIRouter()
 
 @router.get("/competitions", response_class=HTMLResponse)
 async def competitions(request: Request, error: str = None, success: str = None):
+    """Render the competitions page with upcoming competitions, results, and pace chart."""
     error_html = f'<div class="error" role="alert">{error}</div>' if error else ""
     success_html = f'<div class="success" role="alert">&#10003; {success}</div>' if success else ""
 
@@ -16,6 +19,7 @@ async def competitions(request: Request, error: str = None, success: str = None)
     if "userId" not in request.session:
         return RedirectResponse(url="/login?error=Please+log+in", status_code=303)
 
+    """Fetch competitions, results, personal bests, and cardio data for the user from the database."""
     userId = request.session["userId"]
 
     competition_rows = ""
@@ -194,6 +198,7 @@ async def competitions(request: Request, error: str = None, success: str = None)
     sorted_dates = sorted(pace_accumulator.keys())
 
     def avg_pace(values):
+        """Return mean of values rounded to 2dp, or None if empty."""
         return round(sum(values) / len(values), 2) if values else None
 
     chart_data = {
@@ -328,6 +333,9 @@ async def competitions(request: Request, error: str = None, success: str = None)
                 <script>
                     let competitionCount = 0;
 
+                    /**
+                     * Appends a new competition input block to the form.
+                     */
                     function addCompetition() {{
                         competitionCount++;
                         const container = document.getElementById("competitionContainer");
@@ -405,6 +413,11 @@ async def competitions(request: Request, error: str = None, success: str = None)
 
                     const CUSTOM_TYPES = ["Run", "Cycle", "Swim"];
 
+                    /**
+                     * Shows/hides the distance field and pre-fills standard event distances.
+                     * @param {{number}} competitionCount - Index of the competition block.
+                     * @param {{string}} type - Selected competition type.
+                     */
                     function updateDistance(competitionCount, type) {{
                         const field = document.getElementById("distanceField_" + competitionCount);
                         const input = document.getElementById("distanceInput_" + competitionCount);
@@ -472,6 +485,10 @@ async def competitions(request: Request, error: str = None, success: str = None)
                             months[end.getMonth()] + ' ' + end.getFullYear();
                     }}
 
+                    /**
+                     * Renders the pace chart for the given window offset.
+                     * @param {{number}} offset - Number of 3-month windows to go back from today.
+                     */
                     function renderChart(offset) {{
                         const filtered = filterWindow(offset);
                         updateLabel(offset);
@@ -525,6 +542,10 @@ async def competitions(request: Request, error: str = None, success: str = None)
                         }});
                     }}
 
+                    /**
+                     * Moves the chart window forward or backward by one period(3 months).
+                     * @param {{number}} direction: 1 for forward, -1 for backward.
+                     */
                     function shiftWindow(direction) {{
                         windowOffset -= direction;
                         if (windowOffset < 0) windowOffset = 0;
@@ -538,9 +559,11 @@ async def competitions(request: Request, error: str = None, success: str = None)
             </body>
         </html>
     """
-# Validation functions
-##############################
+# HTML attributes (required, type, min) provide first-pass browser validation.
+# validate_competition() and validate_result_time() enforce the same rules server-side
+# in case client-side checks are bypassed.
 def validate_competition(race: str, competition_type: str, date: str, distance: float, description: str):
+    """Validate competition form fields. Returns a list of error strings."""
     errors = []
 
     if not race:
@@ -571,7 +594,7 @@ def validate_competition(race: str, competition_type: str, date: str, distance: 
     return errors
 
 def validate_result_time(result_time: str):
-    
+    """Validate result time is a positive number. Returns an error string or None."""
     if not result_time:
         return "Result time is required."
     try:
@@ -581,13 +604,11 @@ def validate_result_time(result_time: str):
     except ValueError:
         return "Result time must be a number."
     return None
-#####################################
+
 
 @router.post("/competitions")
 async def add_competition_post(request: Request):
-
-    # Authentication check
-    
+    """Handle POST for adding one or more competitions from the inline form."""
     if "userId" not in request.session:
         return RedirectResponse(url="/login?error=Please+log+in", status_code=303)
 
@@ -677,7 +698,7 @@ async def complete_competition_post(
     competitionId: int = Form(...),
     resultTime: str = Form(...)
 ):
-    
+    """Mark a competition as completed and save the result time."""
     if "userId" not in request.session:
         return RedirectResponse(url="/competitions?error=Please+log+in", status_code=303)
     if competitionId <= 0:

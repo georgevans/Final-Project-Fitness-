@@ -1,3 +1,5 @@
+"""Routes for logging a new workout with weight and cardio entry types."""
+
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from database.db import get_connection, get_user_settings
@@ -6,8 +8,10 @@ from datetime import datetime
 
 router = APIRouter()
 
+
 @router.get("/add-workout", response_class=HTMLResponse)
 async def add_workout(request: Request, error: str = None):
+    """Render the add workout form with dynamic exercise fields."""
     error_html = f'<div class="error" role="alert">{error}</div>' if error else ""
 
     userId = request.session.get("userId")  
@@ -197,6 +201,7 @@ async def add_workout_post(
     programmeDayId: str = Form(None),
     programmeId: str = Form(None)
 ):
+    """Parse submitted workout form with workout, exercises, sets, and cardio added to the DB."""
     userId = request.session.get("userId")
 
     if not userId:

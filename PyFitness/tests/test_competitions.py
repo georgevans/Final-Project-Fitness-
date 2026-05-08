@@ -1,3 +1,5 @@
+"""Tests for the competitions routes: page rendering, form validation, and DB interactions."""
+
 import pytest
 import uuid
 from database.db import get_connection
@@ -8,10 +10,13 @@ from routers.competitions import validate_competition, validate_result_time
 
 @pytest.fixture
 def client():
+    """Return an unauthenticated test client to test auth-required routes redirect to login."""
     return TestClient(app)
+
 
 @pytest.fixture
 def loggedInClient(client):
+    """Return an authenticated test client. Cleans up all test data after each test."""
     username = f"testuser_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
     password = "Password123."
@@ -252,9 +257,7 @@ def test_complete_competition_invalid_id_returns_error(loggedInClient):
 
 
 
-## validation function tests using parameterization
-
-# validate_competition tests
+"""Tests for the competitions routes: page rendering, form validation, and DB interactions."""
 
 @pytest.mark.parametrize("race, type_, date, distance, desc, expected_error", [
     ("Park Run",     "Run",      "2026-06-01", 5.0,  "",       False),  # valid run
@@ -320,7 +323,7 @@ def test_personal_bests_shows_best_time(loggedInClient):
     assert "23" in response.text
     assert "45" in response.text
 
-# Tests for pace chart on competitions page
+"""Tests for the Pace Chart on the competitions page."""
 
 def test_competitions_page_contains_pace_chart(loggedInClient):
     client, _ = loggedInClient
