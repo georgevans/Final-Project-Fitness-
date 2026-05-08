@@ -1,3 +1,5 @@
+"""Tests for the settings routes: page rendering and unit preference updates."""
+
 import pytest
 from database.db import get_connection
 import uuid
@@ -7,11 +9,13 @@ from main import app
 
 @pytest.fixture
 def client():
+    """Return an unauthenticated test client."""
     return TestClient(app)
 
 
 @pytest.fixture
 def loggedInClient(client):
+    """Register a temporary user, yield the client, then clean up settings and user data."""
     username = f"testuser_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
     password = "Password123."
@@ -93,6 +97,7 @@ def test_update_settings_redirects_if_not_logged(client):
 
 
 def test_update_settings_success_redirect(loggedInClient):
+    """Verify that saving valid settings redirects to /settings?saved=1."""
     response = loggedInClient.post("/update-settings", data={
         "weight_unit": "lb",
         "distance_unit": "mi"

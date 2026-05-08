@@ -1,3 +1,5 @@
+"""Tests for the add workout routes via the programme fixture: rendering and form submission."""
+
 import pytest
 from database.db import get_connection
 import uuid
@@ -7,11 +9,13 @@ from main import app
 
 @pytest.fixture
 def client():
+    """Return an unauthenticated test client."""
     return TestClient(app)
 
 
 @pytest.fixture
 def loggedInClient(client):
+    """Register a temporary user, yield the client, then clean up competitions and user data."""
     username = f"testuser_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
     password = "Password123."
@@ -102,6 +106,7 @@ def test_add_workout_post_redirects_if_empty_exercise_name(loggedInClient):
 
 
 def test_add_workout_post_empty_workout_name_returns_error(loggedInClient):
+    """Verify that a whitespace-only workout name is rejected with a redirect to an error page."""
     response = loggedInClient.post("/add-workout", data={
         "workoutName": "   ",
         "workoutType_1": "cardio",
@@ -116,6 +121,7 @@ def test_add_workout_post_empty_workout_name_returns_error(loggedInClient):
 
 
 def test_add_workout_post_missing_workout_name_returns_422(loggedInClient):
+    """Verify that omitting workoutName entirely returns 422; FastAPI rejects it before route logic runs."""
     response = loggedInClient.post("/add-workout", data={
         "workoutType_1": "cardio",
         "exerciseName_1": "Running",

@@ -1,15 +1,21 @@
+"""Tests for the progress page routes: rendering, stats display, and training readiness score."""
+
 import pytest
 import uuid
 from fastapi.testclient import TestClient
 from database.db import get_connection
 from main import app
 
+
 @pytest.fixture
 def client():
+    """Return an unauthenticated test client."""
     return TestClient(app)
+
 
 @pytest.fixture
 def loggedInClient(client):
+    """Register a temporary user, yield the client, then remove the test user from the database."""
     username = f"testuser_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
     password = "Password123."
@@ -63,6 +69,7 @@ def test_progress_page_contains_weekly_breakdown(loggedInClient):
     assert "Weekly Training Breakdown" in response.text
 
 def test_progress_empty_state_message(loggedInClient):
+    """Verify the progress page loads without error when the user has no workout history."""
     response = loggedInClient.get("/progress")
     assert response.status_code == 200
     
@@ -75,5 +82,6 @@ def test_progress_page_contains_readiness(loggedInClient):
     assert "Training Readiness" in response.text
 
 def test_progress_page_contains_log_competition(loggedInClient):
+    """Verify the competition prompt or readiness score section is present on the progress page."""
     response = loggedInClient.get("/progress")
     assert "Log a Competition" in response.text or "Training Readiness" in response.text

@@ -1,7 +1,11 @@
+"""Tests for database helper functions using mocked connections."""
+
 from unittest.mock import patch, MagicMock
 from database.db import get_user_by_email, get_workouts_by_user, get_todays_programme
 
+
 def test_get_user_by_email_returns_user_when_found():
+    """Verify that get_user_by_email returns the correct user tuple when a match exists."""
     mock_user = (1, "testuser", "test@test.com", "hashedpassword")
     with patch("database.db.get_connection") as mock_conn:
         mock_cursor = MagicMock()
@@ -10,7 +14,9 @@ def test_get_user_by_email_returns_user_when_found():
         result = get_user_by_email("test@test.com")
         assert result == mock_user
 
+
 def test_get_workouts_by_user_returns_list_of_workouts():
+    """Verify that get_workouts_by_user returns all workout rows for the given user."""
     mock_workouts = [
         (1, "Morning Run", "2025-01-01", "08:00:00"),
         (2, "Evening Swim", "2025-01-02", "18:00:00")
@@ -22,7 +28,9 @@ def test_get_workouts_by_user_returns_list_of_workouts():
         result = get_workouts_by_user(1)
         assert result == mock_workouts
 
+
 def test_get_todays_programme_returns_sessions():
+    """Verify that get_todays_programme returns the planned sessions for the given day."""
     mock_sessions = [
         ("Open Water Swim", "cardio", False, "Triathlon Training Plan")
     ]

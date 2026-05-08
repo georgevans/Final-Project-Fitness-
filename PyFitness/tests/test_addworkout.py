@@ -1,3 +1,5 @@
+"""Tests for the add workout routes: page rendering and form submission validation."""
+
 import pytest
 import uuid
 from fastapi.testclient import TestClient
@@ -7,11 +9,13 @@ from database.db import get_connection
 
 @pytest.fixture
 def client():
+    """Return an unauthenticated test client."""
     return TestClient(app)
 
 
 @pytest.fixture
 def logged_in_client(client):
+    """Register a temporary user, yield (client, user_id), then clean up all test data."""
     username = f"testuser_{uuid.uuid4().hex[:8]}"
     email = f"{username}@example.com"
     password = "Password123."
@@ -111,6 +115,7 @@ def test_add_workout_post_missing_exercise_returns_error(logged_in_client):
 
 
 def test_add_workout_post_empty_workout_name_returns_error(logged_in_client):
+    """Verify that a whitespace-only workout name is rejected server-side."""
     client, _ = logged_in_client
 
     response = client.post("/add-workout", data={
@@ -127,6 +132,7 @@ def test_add_workout_post_empty_workout_name_returns_error(logged_in_client):
 
 
 def test_add_workout_post_missing_workout_name_returns_422(logged_in_client):
+    """Verify that omitting the required workoutName field returns a 422 from FastAPI validation."""
     client, _ = logged_in_client
 
     response = client.post("/add-workout", data={

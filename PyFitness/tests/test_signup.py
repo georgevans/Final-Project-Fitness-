@@ -1,3 +1,5 @@
+"""Tests for signup and login pages: rendering, password validation, and registration flow."""
+
 from fastapi.testclient import TestClient
 from main import app
 from routers.signup import check_sign_up_password
@@ -85,6 +87,7 @@ def test_login_password_valid():
 # ========= DB sign up checks ==========
 
 def test_signup_post_redirects_on_success():
+    """Verify that a valid signup form submission redirects rather than returning an error."""
     response = client.post("/signup", data={
         "username": "testuser",
         "email": "email@testemail.com",

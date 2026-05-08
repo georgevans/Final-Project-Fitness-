@@ -1,3 +1,5 @@
+"""Routes for the home page: workout feed, calendar, workout detail modal, delete, and logout."""
+
 import html
 import json
 from fastapi import APIRouter, Request, Form
@@ -8,6 +10,7 @@ router = APIRouter()
 
 @router.get("/home", response_class=HTMLResponse)
 async def home(request: Request):
+    """Render the home page with the user's workout history, stats, and calendar."""
     if "userId" not in request.session:
         return RedirectResponse(url="/login?error=Must+be+logged+in", status_code=303)
 
@@ -27,7 +30,7 @@ async def home(request: Request):
         workout_html = "<div class='workout-grid'>"
 
         for i, workout in enumerate(workouts):
-            title = html.escape(workout[1])
+            title = html.escape(workout[1])  # Escaping user-supplied titles prevents XSS in the rendered HTML.
             if workout[4]:
                 programmeId = get_programmeid_from_workoutid(workout[0])
             workout_html += f"""
@@ -52,6 +55,7 @@ async def home(request: Request):
 
         workout_html += "</div>"
 
+    # Calendar events are grouped by ISO date string so the JS calendar can look them up by key.
     calendar_events = get_calendar_events(userId)
     events_by_date = {}
     for date_str, name, event_type in calendar_events:
@@ -159,6 +163,10 @@ async def home(request: Request):
                 </div>
 
                 <script>
+                    /**
+                     * Fetches workout details and displays them in the modal.
+                     * @param {{number}} workoutId
+                     */
                     async function openWorkout(workoutId) {{
                         const response = await fetch(`/workout-details/${{workoutId}}`);
                         const data = await response.json();
@@ -197,6 +205,7 @@ async def home(request: Request):
                         document.querySelector("#workoutModal .close").focus();
                     }}
 
+                    /** Hides the workout detail modal. */
                     function closeModal() {{
                         document.getElementById("workoutModal").style.display = "none";
                     }}
@@ -209,6 +218,11 @@ async def home(request: Request):
                     let currentYear = new Date().getFullYear();
                     let currentMonth = new Date().getMonth();
 
+                    /**
+                     * Renders the calendar grid for the given year and month.
+                     * @param {{number}} year
+                     * @param {{number}} month - Zero-based month index.
+                     */
                     function renderCalendar(year, month) {{
                         const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
                         document.getElementById('calendarTitle').textContent = monthNames[month] + ' ' + year;
@@ -267,12 +281,14 @@ async def home(request: Request):
                         }}
                     }}
 
+                    /** Navigates the calendar to the previous month. */
                     function prevMonth() {{
                         currentMonth--;
                         if (currentMonth < 0) {{ currentMonth = 11; currentYear--; }}
                         renderCalendar(currentYear, currentMonth);
                     }}
 
+                    /** Navigates the calendar to the next month. */
                     function nextMonth() {{
                         currentMonth++;
                         if (currentMonth > 11) {{ currentMonth = 0; currentYear++; }}
@@ -321,6 +337,7 @@ async def home(request: Request):
                     
 
                     
+                    /** Filters workout cards by matching the search input against title and programme name. */
                     function filterWorkouts() {{
                         const input = document.getElementById('searchInput').value.toLowerCase();
                         const cards = document.querySelectorAll('.workout-card');
@@ -339,6 +356,7 @@ async def home(request: Request):
                         }});
                     }}
 
+                    /** Sorts workout cards by the selected sort option and re-appends them to the grid. */
                     function sortWorkouts() {{
                         const sort = document.getElementById('sortSelect').value;
                         const grid = document.querySelector('.workout-grid');
@@ -398,6 +416,10 @@ async def home(request: Request):
                         }}
                     }}
 
+                    /**
+                     * Displays a temporary toast notification at the top of the page.
+                     * @param {{string}} message
+                     */
                     function showToast(message) {{
                         const toast = document.createElement("div");
                         toast.innerText = message;
@@ -426,6 +448,7 @@ async def home(request: Request):
     
 @router.post("/delete-workout")
 async def delete_workout_post(request: Request, workoutId: int = Form(...)):
+    """Delete a workout belonging to the logged-in user and redirect back to home."""
     if "userId" not in request.session:
         return RedirectResponse(url="/login?error=Must+be+logged+in", status_code=303)
     userId = request.session["userId"]
@@ -435,15 +458,14 @@ async def delete_workout_post(request: Request, workoutId: int = Form(...)):
 
 @router.get("/workout-details/{workout_id}")
 async def workout_details(workout_id: int, request: Request):
+    """Return workout detail JSON for the modal, including exercises, sets, and cardio data."""
     if "userId" not in request.session:
         return JSONResponse({"error": "Unauthorized"}, status_code=403)
 
     userId = request.session["userId"]
-    
 
     settings = get_user_settings(userId)
-
-    distance_unit = settings[1] if settings else "km"
+    distance_unit = settings[1] if settings else "km"  # The settings tuple is ordered as (weight_unit, distance_unit).
 
     conn = get_connection()
     cur = conn.cursor()
@@ -537,6 +559,7 @@ async def workout_details(workout_id: int, request: Request):
 
 @router.get('/logout')
 async def logout(request: Request):
+    """Clear the session and redirect to the login page."""
     userId = request.session.get("userId")
 
     if not userId:
