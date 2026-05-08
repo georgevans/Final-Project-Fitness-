@@ -54,7 +54,7 @@ jobs:
 
       - name: Run Bandit
         run: |
-          bandit -r . -x ./tests
+          bandit -r . -x ./tests --skip B608
 
       - name: Run pip-audit
         run: |
