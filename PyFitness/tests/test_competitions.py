@@ -86,7 +86,7 @@ def test_competitions_page_shows_error(loggedInClient):
     response = client.get("/competitions?error=Something+went+wrong",follow_redirects=False)
     assert "Something went wrong" in response.text
     
-# Parameterized test for upcoming competitions
+"""Parameterized test to check that competitions added to the database show up on the upcoming competitions table."""""
 @pytest.mark.parametrize("race, date, description", [
     ("Park Run", "2026-06-01", "Local race"),
     ("City Marathon", "2026-10-01", "Big event"),

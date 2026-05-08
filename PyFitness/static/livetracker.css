@@ -1,0 +1,81 @@
+/* Styles for the live tracker page: card layout, timer, stat displays, and controls */
+@import url('main.css');
+
+/* Tracker card */
+.tracker-card {
+    max-width: 480px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.tracker-card h2 {
+    margin-bottom: 24px;
+}
+
+.tracker-card h2 span {
+    color: var(--toasted-almond);
+}
+
+/* Timer display */
+#timerDisplay {
+    font-size: 3.5rem;
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.1em;
+    line-height: 1;
+}
+
+/* Distance and pace stat row */
+.tracker-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 24px 0;
+}
+
+.tracker-stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+}
+
+.tracker-stat-value {
+    font-size: 2rem;
+    font-family: 'Bebas Neue', sans-serif;
+}
+
+/* Activity type selector spacing */
+.tracker-type-group {
+    margin-bottom: 16px;
+}
+
+/* Status message */
+#statusMsg {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    min-height: 1.2em;
+    margin-bottom: 16px;
+}
+
+/* Start / stop button row */
+.tracker-controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+/* Save section shown after stopping */
+.tracker-save-section {
+    margin-top: 24px;
+    text-align: left;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    #timerDisplay {
+        font-size: 2.5rem;
+    }
+
+    .tracker-stat-value {
+        font-size: 1.5rem;
+    }
+}
